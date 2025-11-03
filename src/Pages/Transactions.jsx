@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "../Components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../Components/ui/card";
 import { Edit, Trash2 } from "lucide-react";
 import TransactionForm from "../Components/transactions/TransactionForm";
 import { useAppData } from "../Contexts/AppDataContext";
-import OCRScanner from "@/Components/OCRScanner";
+import OCRScanner from "../Components/OCRScanner";
 
 export default function Transactions() {
   const { transactions, setTransactions, categories } = useAppData();

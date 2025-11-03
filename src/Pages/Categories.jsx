@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { Button } from "../Components/ui/button";
 import {
   Plus,
   Edit,
@@ -18,10 +18,10 @@ import {
   MapPin,
   Heart
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../Components/ui/card";
+import { Input } from "../Components/ui/input";
+import { Label } from "../Components/ui/label";
+import { Badge } from "../Components/ui/badge";
 import { useAppData } from "../Contexts/AppDataContext";
 import { useAuth } from "../Contexts/AuthContext";
 import categoryData from "../Entities/Category.json";

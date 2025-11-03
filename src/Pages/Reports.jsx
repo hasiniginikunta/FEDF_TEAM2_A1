@@ -14,7 +14,7 @@ import {
   Pie,
   Cell
 } from "recharts";
-import { Button } from "@/components/ui/button";
+import { Button } from "../Components/ui/button";
 import { useAppData } from "../Contexts/AppDataContext";
 
 // Error Boundary Component

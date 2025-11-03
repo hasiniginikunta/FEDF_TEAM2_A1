@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
-import { Input } from "../components/ui/input";
-import { Button } from "../components/ui/button";
-import { Label } from "../components/ui/label";
+import { Card, CardHeader, CardTitle, CardContent } from "../Components/ui/card";
+import { Input } from "../Components/ui/input";
+import { Button } from "../Components/ui/button";
+import { Label } from "../Components/ui/label";
 import { useAppData } from "../Contexts/AppDataContext";
 
 const categories = [

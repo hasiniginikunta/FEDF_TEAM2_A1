@@ -1,7 +1,7 @@
 import React from "react";
 import { Flame } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { updateStreak } from "@/utils";   // since you have utils.js
+import { Card, CardContent } from "./ui/card";
+import { updateStreak } from "../utils";   // since you have utils.js
 
 export default function Streaks({ expenses }) {
   const streak = updateStreak(expenses);

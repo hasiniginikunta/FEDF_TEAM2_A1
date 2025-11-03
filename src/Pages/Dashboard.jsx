@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "../Components/ui/card";
 import { Calendar, BarChart3, Award, Plus, X, Trash2 } from "lucide-react";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useAuth } from "../Contexts/AuthContext";
 import { useAppData } from "../Contexts/AppDataContext";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { Button } from "@/components/ui/button";
+import { Button } from "../Components/ui/button";
 
 
 export default function Dashboard() {
