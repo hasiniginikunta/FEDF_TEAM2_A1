@@ -1,0 +1,176 @@
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { X, Save, ArrowUpRight, ArrowDownRight } from "lucide-react";
+// import { useAppData } from "../Contexts/AppDataContext";
+
+export default function TransactionForm({ transaction, categories, onSubmit, onCancel }) {
+  const [formData, setFormData] = useState({
+    amount: transaction?.amount || "",
+    description: transaction?.description || "",
+    category_id: String(transaction?.category_id || ""),
+    type: transaction?.type || "expense",
+    date: transaction?.date || new Date().toISOString().split("T")[0],
+  });
+
+  const [filteredCategories, setFilteredCategories] = useState([]);
+
+  useEffect(() => {
+    if (categories.length > 0) {
+      let filtered = categories.filter((cat) => cat.type === formData.type || !cat.type);
+
+      // Include current category even if type mismatch
+      if (formData.category_id && !filtered.find((c) => String(c.id) === String(formData.category_id))) {
+        const currentCat = categories.find((c) => String(c.id) === String(formData.category_id));
+        if (currentCat) filtered.push(currentCat);
+      }
+
+      setFilteredCategories(filtered);
+    }
+  }, [formData.type, categories, formData.category_id]);
+
+  const handleChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+const handleSubmit = (e) => {
+  e.preventDefault();
+  
+  // Ensure category_id is always string
+  const categoryId = String(formData.category_id);
+
+  // Find matching category
+  const matchedCategory = categories.find((c) => String(c.id) === categoryId);
+
+  onSubmit({
+    ...formData,
+    amount: parseFloat(formData.amount),
+    category_id: matchedCategory ? matchedCategory.id : null,
+    category: matchedCategory ? matchedCategory.name : "Uncategorized",
+  });
+};
+
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    >
+      <Card className="w-full max-w-md bg-white shadow-2xl">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            {formData.type === "income" ? (
+              <ArrowDownRight className="w-5 h-5 text-emerald-600" />
+            ) : (
+              <ArrowUpRight className="w-5 h-5 text-red-600" />
+            )}
+            {transaction ? "Edit Transaction" : "Add Transaction"}
+          </CardTitle>
+          <Button variant="ghost" size="icon" onClick={onCancel}>
+            <X className="w-4 h-4" />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Type</Label>
+                <Select
+                  value={formData.type}
+                  onValueChange={(value) => {
+                    handleChange("type", value);
+                    handleChange("category_id", "");
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="income">Income</SelectItem>
+                    <SelectItem value="expense">Expense</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Amount</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={formData.amount}
+                  onChange={(e) => handleChange("amount", e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label>Description</Label>
+              <Input
+                value={formData.description}
+                onChange={(e) => handleChange("description", e.target.value)}
+                required
+              />
+            </div>
+
+            <div>
+              <Label>Category</Label>
+              <Select
+                value={String(formData.category_id || "")}
+                onValueChange={(value) => handleChange("category_id", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredCategories.length === 0 && (
+                    <SelectItem value="" disabled>
+                      No categories available
+                    </SelectItem>
+                  )}
+                  {filteredCategories.map((cat) => (
+                    <SelectItem key={cat.id} value={String(cat.id)}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Date</Label>
+              <Input
+                type="date"
+                value={formData.date}
+                onChange={(e) => handleChange("date", e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <Button type="button" variant="outline" onClick={onCancel}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className={`${
+                  formData.type === "income"
+                    ? "bg-emerald-600 hover:bg-emerald-700"
+                    : "bg-red-600 hover:bg-red-700"
+                }`}
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Save Transaction
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}

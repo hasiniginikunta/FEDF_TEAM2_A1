@@ -1,0 +1,12 @@
+[
+  { "id": 1, "name": "Food", "color": "#f87171", "icon": "coffee", "type": "expense" },
+  { "id": 2, "name": "Transport", "color": "#60a5fa", "icon": "truck", "type": "expense" },
+  { "id": 3, "name": "Shopping", "color": "#fbbf24", "icon": "shopping-cart", "type": "expense" },
+  { "id": 4, "name": "Entertainment", "color": "#a78bfa", "icon": "music", "type": "expense" },
+  { "id": 5, "name": "Health", "color": "#34d399", "icon": "heart", "type": "expense" },
+  { "id": 6, "name": "Salary", "color": "#10b981", "icon": "dollar-sign", "type": "income" },
+  { "id": 7, "name": "Freelance", "color": "#3b82f6", "icon": "briefcase", "type": "income" },
+  { "id": 8, "name": "Investments", "color": "#f97316", "icon": "trending-up", "type": "income" },
+  { "id": 9, "name": "Travel", "color": "#8b5cf6", "icon": "map-pin", "type": "expense" },
+  { "id": 10, "name": "Miscellaneous", "color": "#9ca3af", "icon": "tag", "type": "expense" }
+]
