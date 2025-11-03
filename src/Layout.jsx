@@ -16,8 +16,8 @@ import {
   SidebarFooter,
   SidebarProvider,
   SidebarTrigger,
-} from "../Components/ui/sidebar";
-import { Button } from "../Components/ui/button";
+} from "./Components/ui/sidebar";
+import { Button } from "./Components/ui/button";
 
 const navigationItems = [
   { title: "Dashboard", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
