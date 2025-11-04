@@ -5,17 +5,10 @@ import { Input } from "../Components/ui/input";
 import { Button } from "../Components/ui/button";
 import { Label } from "../Components/ui/label";
 import { useAppData } from "../Contexts/AppDataContext";
+import categoryData from "../Entities/Category.json";
 
-const categories = [
-  "Food",
-  "Transport",
-  "Shopping",
-  "Entertainment",
-  "Health",
-  "Education",
-  "Savings",
-  "Others"
-];
+// Use only expense categories for budget allocation (students allocate their income into spending categories)
+const categories = categoryData.filter(cat => cat.type === 'expense').map(cat => cat.name);
 
 export default function SignupBudgetPage() {
   const navigate = useNavigate();
@@ -68,18 +61,20 @@ export default function SignupBudgetPage() {
     };
     setUser(newUser);
 
-    // Update existing categories with budget allocations
-    setCategories(prevCategories => 
-      prevCategories.map(cat => {
-        const allocation = allocations[cat.name] || 0;
-        return {
-          ...cat,
-          budget: allocation,
-          spent: 0,
-          remaining: allocation
-        };
-      })
-    );
+    // Initialize all categories from Category.json with budget allocations
+    const initializedCategories = categoryData.map(cat => {
+      const allocation = allocations[cat.name] || 0;
+      return {
+        id: cat.id.toString(),
+        name: cat.name,
+        color: cat.color || "gradient-pink-purple",
+        budget: allocation,
+        spent: 0,
+        type: cat.type
+      };
+    });
+    
+    setCategories(initializedCategories);
 
     recomputeCategoryStats();
     navigate("/dashboard");

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
+import categoryData from "../Entities/Category.json";
 
 const AppDataContext = createContext();
 
@@ -13,24 +14,31 @@ export const AppDataProvider = ({ children }) => {
   });
   
   const [categories, setCategories] = useState(() => {
-    // Debug: Check all localStorage keys
-    console.log('All localStorage keys:', Object.keys(localStorage));
-    console.log('appData:', localStorage.getItem('appData'));
-    console.log('hisabkitab_categories:', localStorage.getItem('hisabkitab_categories'));
-    
-    // Try multiple localStorage keys to find your existing categories
+    // Check both appData and hisabkitab_categories for stored categories
     const appData = JSON.parse(localStorage.getItem("appData")) || {};
-    const hisabkitabCategories = JSON.parse(localStorage.getItem("hisabkitab_categories"));
+    const storedCategories = appData.categories || JSON.parse(localStorage.getItem("hisabkitab_categories"));
     
-    console.log('Found categories:', appData.categories || hisabkitabCategories);
+    // Always start with all categories from Category.json
+    const defaultCategories = categoryData.map(cat => ({
+      id: cat.id.toString(),
+      name: cat.name,
+      budget: 0,
+      color: cat.color || "gradient-pink-purple",
+      type: cat.type
+    }));
     
-    return appData.categories || hisabkitabCategories || [
-      { id: "1", name: "Food", budget: 200, color: "gradient-pink-purple" },
-      { id: "2", name: "Transport", budget: 200, color: "gradient-purple-blue" },
-      { id: "3", name: "Shopping", budget: 200, color: "gradient-pink-blue" },
-      { id: "4", name: "Entertainment", budget: 200, color: "gradient-pink-purple" },
-      { id: "5", name: "Savings", budget: 200, color: "gradient-purple-blue" },
-    ];
+    // If we have stored categories, merge budgets with default categories
+    if (storedCategories && storedCategories.length > 0) {
+      return defaultCategories.map(defaultCat => {
+        const storedCat = storedCategories.find(stored => 
+          stored.id.toString() === defaultCat.id || stored.name === defaultCat.name
+        );
+        return storedCat ? { ...defaultCat, budget: storedCat.budget || 0 } : defaultCat;
+      });
+    }
+    
+    // If no stored categories, return all default categories
+    return defaultCategories;
   });
   
   const [monthlyBudget, setMonthlyBudget] = useState(() => {
@@ -142,6 +150,31 @@ export const AppDataProvider = ({ children }) => {
     // The useMemo dependencies will handle the recalculation automatically
   };
 
+  // Function to ensure all default categories are present
+  const ensureAllCategories = () => {
+    const defaultCategories = categoryData.map(cat => ({
+      id: cat.id.toString(),
+      name: cat.name,
+      budget: 0,
+      color: cat.color || "gradient-pink-purple",
+      type: cat.type
+    }));
+    
+    const mergedCategories = defaultCategories.map(defaultCat => {
+      const existingCat = categories.find(cat => cat.id === defaultCat.id || cat.name === defaultCat.name);
+      return existingCat ? existingCat : defaultCat;
+    });
+    
+    if (mergedCategories.length !== categories.length) {
+      setCategories(mergedCategories);
+    }
+  };
+
+  // Ensure all categories are present on mount
+  useEffect(() => {
+    ensureAllCategories();
+  }, []);
+
   // --- CONTEXT VALUE ---
   // Memoize the context value itself for performance
   const value = useMemo(() => ({
@@ -159,6 +192,7 @@ export const AppDataProvider = ({ children }) => {
     setUser,
     recomputeCategoryStats,
     reloadData,
+    ensureAllCategories,
   }), [transactions, categories, enrichedCategories, monthlyBudget, totalSpent, remaining, user]);
   
   return (

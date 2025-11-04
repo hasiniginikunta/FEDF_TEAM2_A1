@@ -3,19 +3,21 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "../Components/ui/card";
 import { Input } from "../Components/ui/input";
 import { Button } from "../Components/ui/button";
+import categoryData from "../Entities/Category.json";
 
 export default function MonthlyBudgetPage() {
   const navigate = useNavigate();
   const storedUser = JSON.parse(localStorage.getItem("user")) || {};
 
   const storedCategories =
-    JSON.parse(localStorage.getItem("hisabkitab_categories")) || [
-      { id: 1, name: "Food", budget: 0 },
-      { id: 2, name: "Transport", budget: 0 },
-      { id: 3, name: "Shopping", budget: 0 },
-      { id: 4, name: "Entertainment", budget: 0 },
-      { id: 5, name: "Savings", budget: 0 },
-    ];
+    JSON.parse(localStorage.getItem("hisabkitab_categories")) || 
+    categoryData.map(cat => ({
+      id: cat.id,
+      name: cat.name,
+      budget: 0,
+      color: cat.color,
+      type: cat.type
+    }));
 
   const [budget, setBudget] = useState(storedUser.budget_limit || "");
   const [categories, setCategories] = useState(storedCategories);
@@ -48,28 +50,34 @@ const handleSubmit = (e) => {
   e.preventDefault();
   const budgetAmount = parseFloat(budget);
 
+  // Ensure categories have string IDs for consistency
+  const categoriesWithStringIds = categories.map(cat => ({
+    ...cat,
+    id: cat.id.toString()
+  }));
+
   // Get existing appData if any
   const existingData = JSON.parse(localStorage.getItem("appData")) || {};
 
-  // Save updated budget + categories
+  // Save updated budget + categories to appData
   localStorage.setItem(
     "appData",
     JSON.stringify({
       ...existingData,
       monthlyBudget: budgetAmount,
-      categories: categories,
+      categories: categoriesWithStringIds,
       transactions: existingData.transactions || [],
     })
   );
+
+  // Also save to hisabkitab_categories for AppDataContext
+  localStorage.setItem("hisabkitab_categories", JSON.stringify(categoriesWithStringIds));
 
   // Also update user object if needed
   localStorage.setItem(
     "user",
     JSON.stringify({ ...storedUser, budget_limit: budgetAmount })
   );
-
-  // 🔹 Add this line so Dashboard, Categories, Reports all read same budget
-  localStorage.setItem("total_budget", budgetAmount);
 
   navigate("/confirmation");
 };

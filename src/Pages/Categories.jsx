@@ -167,7 +167,7 @@ export default function Categories() {
                   <span>Budget: {cat.budget > 0 ? `₹${cat.budget.toLocaleString()}` : 'Not allocated'}</span>
                   <span>Spent: ₹{(cat.spent || 0).toLocaleString()}</span>
                 </div>
-                {cat.budget === 0 && (
+                {(cat.budget === 0 || !cat.budget) && (
                   <div className="text-xs text-gray-500 mt-1">
                     Click edit to set budget allocation
                   </div>

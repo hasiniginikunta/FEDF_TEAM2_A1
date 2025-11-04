@@ -32,12 +32,34 @@ export default function Transactions() {
   };
 
   const handleSubmit = (tx) => {
-    const updatedTx = {
-      ...tx,
-      id: editingTx ? editingTx.id : Date.now().toString(),
-      category_id: tx.category_id,
-      category: tx.category || "Uncategorized",
-    };
+    // Handle OCR data format (from OCRScanner) vs regular transaction format
+    const isOCRData = tx.title && !tx.description;
+    
+    let updatedTx;
+    if (isOCRData) {
+      // Find category by name for OCR data
+      const matchedCategory = categories.find(cat => 
+        cat.name.toLowerCase() === tx.category?.toLowerCase()
+      );
+      
+      updatedTx = {
+        id: Date.now().toString(),
+        description: tx.title,
+        amount: parseFloat(tx.amount),
+        date: tx.date,
+        type: "expense", // OCR scanned receipts are always expenses
+        category_id: matchedCategory?.id || null,
+        category: matchedCategory?.name || tx.category || "Uncategorized",
+      };
+    } else {
+      // Regular transaction format
+      updatedTx = {
+        ...tx,
+        id: editingTx ? editingTx.id : Date.now().toString(),
+        category_id: tx.category_id,
+        category: tx.category || "Uncategorized",
+      };
+    }
 
     const updatedTransactions = editingTx
       ? transactions.map((t) => (t.id === editingTx.id ? updatedTx : t))

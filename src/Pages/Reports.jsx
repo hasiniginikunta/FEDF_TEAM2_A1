@@ -266,6 +266,7 @@ function ReportsContent() {
                   ))}
                 </Pie>
                 <Tooltip formatter={(value) => [`₹${value}`, "Amount"]} />
+                <Legend />
               </PieChart>
             </ResponsiveContainer>
           </div>
