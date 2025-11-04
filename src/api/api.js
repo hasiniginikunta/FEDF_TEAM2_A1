@@ -33,22 +33,24 @@ api.interceptors.response.use(
 );
 
 // AUTH API
+// AUTH API
 export const authAPI = {
   signup: async (userData) => {
-    const response = await api.post('/api/auth/signup', userData);
+    const response = await api.post('/api/users/register', userData);
     return response.data;
   },
-  
+
   login: async (credentials) => {
-    const response = await api.post('/api/auth/login', credentials);
+    const response = await api.post('/api/users/login', credentials);
     return response.data;
   },
-  
+
   getUser: async () => {
-    const response = await api.get('/api/auth/me');
+    const response = await api.get('/api/users/me');
     return response.data;
   }
 };
+
 
 // CATEGORY API
 export const categoryAPI = {
