@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "../Components/ui/card"
 import { Input } from "../Components/ui/input";
 import { Button } from "../Components/ui/button";
 import { Label } from "../Components/ui/label";
-import { useAppData } from "../Contexts/AppDataContext";
+import { useAuth } from "../Contexts/AuthContext";
 import categoryData from "../Entities/Category.json";
 
 // Use only expense categories for budget allocation (students allocate their income into spending categories)
@@ -12,7 +12,7 @@ const categories = categoryData.filter(cat => cat.type === 'expense').map(cat =>
 
 export default function SignupBudgetPage() {
   const navigate = useNavigate();
-  const { setUser, setCategories, recomputeCategoryStats } = useAppData();
+  const { signup, loading } = useAuth();
   const [step, setStep] = useState(1);
 
   // Step 1 - personal details
@@ -51,33 +51,30 @@ export default function SignupBudgetPage() {
     setAllocations((prev) => ({ ...prev, [cat]: Number(value) }));
   };
 
-  const handleConfirm = (e) => {
+  const handleConfirm = async (e) => {
     e.preventDefault();
 
-    const newUser = {
-      personalDetails: personal,
-      monthlyBudget: budget,
-      allocations
-    };
-    setUser(newUser);
-
-    // Initialize all categories from Category.json with budget allocations
-    const initializedCategories = categoryData.map(cat => {
-      const allocation = allocations[cat.name] || 0;
-      return {
-        id: cat.id.toString(),
+    try {
+      // Prepare categories with budget allocations
+      const categoriesWithBudget = categoryData.map(cat => ({
         name: cat.name,
-        color: cat.color || "gradient-pink-purple",
-        budget: allocation,
-        spent: 0,
-        type: cat.type
-      };
-    });
-    
-    setCategories(initializedCategories);
+        budget: allocations[cat.name] || 0,
+        icon: cat.icon || 'tag'
+      }));
 
-    recomputeCategoryStats();
-    navigate("/dashboard");
+      const userData = {
+        name: personal.fullName,
+        email: personal.email,
+        password: 'defaultPassword123', // You might want to add password field
+        monthlyBudget: budget,
+        categories: categoriesWithBudget
+      };
+
+      await signup(userData);
+    } catch (error) {
+      console.error('Signup failed:', error);
+      // You can add toast notification here
+    }
   };
 
   return (

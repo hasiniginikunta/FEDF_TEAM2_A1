@@ -7,7 +7,7 @@ import { useAppData } from "../Contexts/AppDataContext";
 import OCRScanner from "../Components/OCRScanner";
 
 export default function Transactions() {
-  const { transactions, setTransactions, categories } = useAppData();
+  const { transactions, categories, loading, addTransaction, updateTransaction, deleteTransaction } = useAppData();
   const [showForm, setShowForm] = useState(false);
   const [editingTx, setEditingTx] = useState(null);
 
@@ -21,60 +21,55 @@ export default function Transactions() {
     setShowForm(true);
   };
 
-  const handleDelete = (id) => {
-    const updatedTransactions = transactions.filter((tx) => tx.id !== id);
-    setTransactions(updatedTransactions);
-    const data = JSON.parse(localStorage.getItem("appData")) || {};
-    localStorage.setItem(
-      "appData",
-      JSON.stringify({ ...data, transactions: updatedTransactions, categories })
-    );
+  const handleDelete = async (id) => {
+    try {
+      await deleteTransaction(id);
+    } catch (error) {
+      console.error('Failed to delete transaction:', error);
+    }
   };
 
-  const handleSubmit = (tx) => {
-    // Handle OCR data format (from OCRScanner) vs regular transaction format
-    const isOCRData = tx.title && !tx.description;
-    
-    let updatedTx;
-    if (isOCRData) {
-      // Find category by name for OCR data
-      const matchedCategory = categories.find(cat => 
-        cat.name.toLowerCase() === tx.category?.toLowerCase()
-      );
+  const handleSubmit = async (tx) => {
+    try {
+      // Handle OCR data format (from OCRScanner) vs regular transaction format
+      const isOCRData = tx.title && !tx.description;
       
-      updatedTx = {
-        id: Date.now().toString(),
-        description: tx.title,
-        amount: parseFloat(tx.amount),
-        date: tx.date,
-        type: "expense", // OCR scanned receipts are always expenses
-        category_id: matchedCategory?.id || null,
-        category: matchedCategory?.name || tx.category || "Uncategorized",
-      };
-    } else {
-      // Regular transaction format
-      updatedTx = {
-        ...tx,
-        id: editingTx ? editingTx.id : Date.now().toString(),
-        category_id: tx.category_id,
-        category: tx.category || "Uncategorized",
-      };
+      let transactionData;
+      if (isOCRData) {
+        // Find category by name for OCR data
+        const matchedCategory = categories.find(cat => 
+          cat.name.toLowerCase() === tx.category?.toLowerCase()
+        );
+        
+        transactionData = {
+          amount: parseFloat(tx.amount),
+          category: matchedCategory?.name || tx.category || "Uncategorized",
+          type: "expense", // OCR scanned receipts are always expenses
+          date: tx.date,
+          note: tx.title
+        };
+      } else {
+        // Regular transaction format
+        transactionData = {
+          amount: tx.amount,
+          category: tx.category || "Uncategorized",
+          type: tx.type,
+          date: tx.date,
+          note: tx.description
+        };
+      }
+
+      if (editingTx) {
+        await updateTransaction(editingTx.id, transactionData);
+      } else {
+        await addTransaction(transactionData);
+      }
+
+      setShowForm(false);
+      setEditingTx(null);
+    } catch (error) {
+      console.error('Failed to save transaction:', error);
     }
-
-    const updatedTransactions = editingTx
-      ? transactions.map((t) => (t.id === editingTx.id ? updatedTx : t))
-      : [...transactions, updatedTx];
-
-    setTransactions(updatedTransactions);
-
-    const data = JSON.parse(localStorage.getItem("appData")) || {};
-    localStorage.setItem(
-      "appData",
-      JSON.stringify({ ...data, transactions: updatedTransactions, categories })
-    );
-
-    setShowForm(false);
-    setEditingTx(null);
   };
 
   return (
@@ -82,8 +77,8 @@ export default function Transactions() {
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500">Transactions</h1>
-        <Button onClick={handleAdd} className="bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 hover:opacity-90 text-white shadow-lg hover:scale-105 transition-transform">
-          Add Transaction
+        <Button onClick={handleAdd} className="bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 hover:opacity-90 text-white shadow-lg hover:scale-105 transition-transform" disabled={loading}>
+          {loading ? 'Loading...' : 'Add Transaction'}
         </Button>
       </div>
 

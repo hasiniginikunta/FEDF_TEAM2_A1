@@ -14,8 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../Components/ui/tabs"
 import { Mail, Lock, User } from "lucide-react";
 
 export default function LoginPage() {
-  const { login, signup } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
+  const { login, signup, loading } = useAuth();
   const [error, setError] = useState("");
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [signupForm, setSignupForm] = useState({
@@ -26,26 +25,29 @@ export default function LoginPage() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
     setError("");
     try {
       await login(loginForm.email, loginForm.password);
     } catch (err) {
       setError(err.message);
     }
-    setIsLoading(false);
   };
 
   const handleSignup = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
     setError("");
     try {
-      await signup(signupForm.name, signupForm.email, signupForm.password);
+      const userData = {
+        name: signupForm.name,
+        email: signupForm.email,
+        password: signupForm.password,
+        monthlyBudget: 12000,
+        categories: []
+      };
+      await signup(userData);
     } catch (err) {
       setError(err.message);
     }
-    setIsLoading(false);
   };
 
   return (
@@ -149,9 +151,9 @@ export default function LoginPage() {
                     <Button
                       type="submit"
                       className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium rounded-xl"
-                      disabled={isLoading}
+                      disabled={loading}
                     >
-                      {isLoading ? "Signing in..." : "Sign In"}
+                      {loading ? "Signing in..." : "Sign In"}
                     </Button>
                   </form>
                 </TabsContent>
@@ -204,9 +206,9 @@ export default function LoginPage() {
                     <Button
                       type="submit"
                       className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium rounded-xl"
-                      disabled={isLoading}
+                      disabled={loading}
                     >
-                      {isLoading ? "Creating..." : "Create Account"}
+                      {loading ? "Creating..." : "Create Account"}
                     </Button>
                   </form>
                 </TabsContent>

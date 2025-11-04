@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { authAPI } from "../api/api";
 
 const AuthContext = createContext();
 
@@ -8,6 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     return JSON.parse(localStorage.getItem("user")) || null;
   });
+  const [loading, setLoading] = useState(false);
 
   // Keep user in localStorage whenever it changes
   useEffect(() => {
@@ -18,38 +20,53 @@ export const AuthProvider = ({ children }) => {
     }
   }, [user]);
 
-  const login = (email, password) => {
-    const storedUsers = JSON.parse(localStorage.getItem("userData")) || [];
-    const foundUser = storedUsers.find(
-      (u) => u.email === email && u.password === password
-    );
-    if (!foundUser) throw new Error("Invalid credentials");
-
-    setUser(foundUser);
-    navigate("/dashboard"); // redirect after login
+  const login = async (email, password) => {
+    try {
+      setLoading(true);
+      const response = await authAPI.login({ email, password });
+      
+      if (response.success) {
+        localStorage.setItem("token", response.token);
+        setUser(response.user);
+        navigate("/dashboard");
+      } else {
+        throw new Error("Login failed");
+      }
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Invalid credentials");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const signup = (name, email, password) => {
-    const storedUsers = JSON.parse(localStorage.getItem("userData")) || [];
-    if (storedUsers.some((u) => u.email === email)) {
-      throw new Error("Email already exists");
+  const signup = async (userData) => {
+    try {
+      setLoading(true);
+      const response = await authAPI.signup(userData);
+      
+      if (response.success) {
+        localStorage.setItem("token", response.token);
+        setUser(response.user);
+        navigate("/dashboard");
+      } else {
+        throw new Error("Signup failed");
+      }
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Signup failed");
+    } finally {
+      setLoading(false);
     }
-
-    const newUser = { name, email, password };
-    storedUsers.push(newUser);
-    localStorage.setItem("userData", JSON.stringify(storedUsers));
-
-    setUser(newUser);
-    navigate("/personal-details"); // redirect after signup
   };
 
   const logout = () => {
-    setUser(null);        // clears context state
-    navigate("/login");   // redirect to login page
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+    navigate("/login");
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, login, signup, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

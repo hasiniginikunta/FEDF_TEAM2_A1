@@ -11,7 +11,7 @@ import { Button } from "../Components/ui/button";
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { transactions, enrichedCategories, monthlyBudget, totalBudget, totalSpent } = useAppData();
+  const { transactions, enrichedCategories, monthlyBudget, totalBudget, totalSpent, loading } = useAppData();
   const [goals, setGoals] = useLocalStorage("hisabkitab_goals", []);
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [newGoalName, setNewGoalName] = useState("");
@@ -79,7 +79,7 @@ export default function Dashboard() {
       {/* Header */}
       <motion.div className="dashboard-header">
         <div>
-          <h1 className="header-title">Welcome back, {user.name}! 🎉</h1>
+          <h1 className="header-title">Welcome back, {user?.name}! 🎉</h1>
           <p className="header-subtitle">Track, save, and achieve your student goals 🚀</p>
         </div>
       </motion.div>

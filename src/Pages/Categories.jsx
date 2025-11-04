@@ -43,7 +43,7 @@ export const getCategoryIcon = (cat) => {
 };
 
 export default function Categories() {
-  const { categories, setCategories, transactions, totalBudget, totalSpent, remaining, reloadData } = useAppData();
+  const { categories, transactions, totalBudget, totalSpent, remaining, loading, addCategory, updateCategory, deleteCategory, reloadData } = useAppData();
 
   // Force reload data when Categories page loads
   React.useEffect(() => {
@@ -77,32 +77,33 @@ export default function Categories() {
 
 
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.budget) return;
     const budgetValue = parseFloat(formData.budget);
 
-    if (editingCategory) {
-      setCategories(prev =>
-        prev.map(cat =>
-          cat.id === editingCategory.id
-            ? { ...cat, name: formData.name, budget: budgetValue, color: formData.color }
-            : cat
-        )
-      );
-    } else {
-      setCategories(prev => [...prev, {
-        id: Date.now().toString(),
-        name: formData.name,
-        color: formData.color,
-        budget: budgetValue,
-        spent: 0
-      }]);
-    }
+    try {
+      if (editingCategory) {
+        await updateCategory(editingCategory.id, {
+          name: formData.name,
+          budget: budgetValue,
+          icon: formData.color
+        });
+      } else {
+        await addCategory({
+          name: formData.name,
+          budget: budgetValue,
+          icon: formData.color
+        });
+      }
 
-    setFormData({ name: "", budget: "", color: "gradient-pink-purple" });
-    setEditingCategory(null);
-    setShowForm(false);
+      setFormData({ name: "", budget: "", color: "gradient-pink-purple" });
+      setEditingCategory(null);
+      setShowForm(false);
+    } catch (error) {
+      console.error('Failed to save category:', error);
+      // You can add toast notification here
+    }
   };
 
   const handleEdit = (cat) => {
@@ -111,8 +112,13 @@ export default function Categories() {
     setShowForm(true);
   };
 
-  const handleDelete = (id) => {
-    setCategories(prev => prev.filter(cat => cat.id !== id));
+  const handleDelete = async (id) => {
+    try {
+      await deleteCategory(id);
+    } catch (error) {
+      console.error('Failed to delete category:', error);
+      // You can add toast notification here
+    }
   };
 
   return (
@@ -123,14 +129,10 @@ export default function Categories() {
             Categories
           </h1>
           <div className="flex gap-2">
-            <Button onClick={() => {
-              console.log('localStorage appData:', JSON.parse(localStorage.getItem('appData') || '{}'));
-              console.log('localStorage hisabkitab_categories:', JSON.parse(localStorage.getItem('hisabkitab_categories') || '[]'));
-              reloadData();
-            }} className="btn-add-category gradient-purple-blue">
-              Debug & Reload
+            <Button onClick={reloadData} className="btn-add-category gradient-purple-blue" disabled={loading}>
+              {loading ? 'Loading...' : 'Reload'}
             </Button>
-            <Button onClick={() => setShowForm(true)} className="btn-add-category gradient-pink-purple">
+            <Button onClick={() => setShowForm(true)} className="btn-add-category gradient-pink-purple" disabled={loading}>
               <Plus size={18} className="mr-2" />
               Add Category
             </Button>
