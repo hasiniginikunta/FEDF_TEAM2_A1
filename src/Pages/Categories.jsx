@@ -43,7 +43,12 @@ export const getCategoryIcon = (cat) => {
 };
 
 export default function Categories() {
-  const { categories, setCategories, transactions, totalBudget, totalSpent, remaining } = useAppData();
+  const { categories, setCategories, transactions, totalBudget, totalSpent, remaining, reloadData } = useAppData();
+
+  // Force reload data when Categories page loads
+  React.useEffect(() => {
+    reloadData();
+  }, []);
 
   const { user } = useAuth();
   const [showForm, setShowForm] = useState(false);
@@ -117,10 +122,19 @@ export default function Categories() {
           <h1 className="header-title header-gradient">
             Categories
           </h1>
-          <Button onClick={() => setShowForm(true)} className="btn-add-category gradient-pink-purple">
-            <Plus size={18} className="mr-2" />
-            Add Category
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => {
+              console.log('localStorage appData:', JSON.parse(localStorage.getItem('appData') || '{}'));
+              console.log('localStorage hisabkitab_categories:', JSON.parse(localStorage.getItem('hisabkitab_categories') || '[]'));
+              reloadData();
+            }} className="btn-add-category gradient-purple-blue">
+              Debug & Reload
+            </Button>
+            <Button onClick={() => setShowForm(true)} className="btn-add-category gradient-pink-purple">
+              <Plus size={18} className="mr-2" />
+              Add Category
+            </Button>
+          </div>
         </motion.div>
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="grid grid-cols-1 md:grid-cols-3 gap-6">

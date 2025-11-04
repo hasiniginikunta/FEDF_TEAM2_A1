@@ -198,9 +198,22 @@ export const AppDataProvider = ({ children }) => {
 
   // Ensure all categories are present on mount and reload any existing budget allocations
   useEffect(() => {
-    ensureAllCategories();
-    // Force reload data on mount to pick up any existing budget allocations
-    reloadData();
+    // Small delay to ensure localStorage is ready
+    setTimeout(() => {
+      ensureAllCategories();
+      reloadData();
+    }, 100);
+  }, []);
+
+  // Also listen for localStorage changes
+  useEffect(() => {
+    const handleStorageUpdate = () => {
+      console.log('Storage updated, reloading data...');
+      reloadData();
+    };
+    
+    window.addEventListener('storage', handleStorageUpdate);
+    return () => window.removeEventListener('storage', handleStorageUpdate);
   }, []);
 
   // --- CONTEXT VALUE ---
