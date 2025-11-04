@@ -18,6 +18,8 @@ export const AppDataProvider = ({ children }) => {
     const appData = JSON.parse(localStorage.getItem("appData")) || {};
     const storedCategories = appData.categories || JSON.parse(localStorage.getItem("hisabkitab_categories"));
     
+    console.log('AppDataContext - Loading categories:', { appData, storedCategories });
+    
     // Always start with all categories from Category.json
     const defaultCategories = categoryData.map(cat => ({
       id: cat.id.toString(),
@@ -29,15 +31,18 @@ export const AppDataProvider = ({ children }) => {
     
     // If we have stored categories, merge budgets with default categories
     if (storedCategories && storedCategories.length > 0) {
-      return defaultCategories.map(defaultCat => {
+      const mergedCategories = defaultCategories.map(defaultCat => {
         const storedCat = storedCategories.find(stored => 
           stored.id.toString() === defaultCat.id || stored.name === defaultCat.name
         );
         return storedCat ? { ...defaultCat, budget: storedCat.budget || 0 } : defaultCat;
       });
+      console.log('AppDataContext - Merged categories with budgets:', mergedCategories);
+      return mergedCategories;
     }
     
     // If no stored categories, return all default categories
+    console.log('AppDataContext - Using default categories:', defaultCategories);
     return defaultCategories;
   });
   
@@ -142,6 +147,27 @@ export const AppDataProvider = ({ children }) => {
     if (newBudget !== undefined) {
       setMonthlyBudget(newBudget);
     }
+    
+    // Also reload categories with budget allocations
+    const storedCategories = appData.categories || JSON.parse(localStorage.getItem("hisabkitab_categories"));
+    if (storedCategories && storedCategories.length > 0) {
+      const defaultCategories = categoryData.map(cat => ({
+        id: cat.id.toString(),
+        name: cat.name,
+        budget: 0,
+        color: cat.color || "gradient-pink-purple",
+        type: cat.type
+      }));
+      
+      const mergedCategories = defaultCategories.map(defaultCat => {
+        const storedCat = storedCategories.find(stored => 
+          stored.id.toString() === defaultCat.id || stored.name === defaultCat.name
+        );
+        return storedCat ? { ...defaultCat, budget: storedCat.budget || 0 } : defaultCat;
+      });
+      
+      setCategories(mergedCategories);
+    }
   };
 
   // Function to recompute category stats (used in signup)
@@ -170,9 +196,11 @@ export const AppDataProvider = ({ children }) => {
     }
   };
 
-  // Ensure all categories are present on mount
+  // Ensure all categories are present on mount and reload any existing budget allocations
   useEffect(() => {
     ensureAllCategories();
+    // Force reload data on mount to pick up any existing budget allocations
+    reloadData();
   }, []);
 
   // --- CONTEXT VALUE ---
