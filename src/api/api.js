@@ -111,3 +111,53 @@ export const chatAPI = {
 };
 
 export default api;
+
+//
+// 🏷️ CATEGORY API
+//
+export const categoryAPI = {
+  getAll: async () => {
+    const response = await api.get('/api/categories');
+    return response.data;
+  },
+
+  addCategory: async (categoryData) => {
+    const response = await api.post('/api/categories', categoryData);
+    return response.data;
+  },
+
+  updateCategory: async (id, categoryData) => {
+    const response = await api.put(`/api/categories/${id}`, categoryData);
+    return response.data;
+  },
+
+  deleteCategory: async (id) => {
+    const response = await api.delete(`/api/categories/${id}`);
+    return response.data;
+  },
+};
+
+//
+// 💰 TRANSACTION API
+//
+export const transactionAPI = {
+  getAll: async () => {
+    const response = await api.get('/api/transactions');
+    return response.data;
+  },
+
+  addTransaction: async (transactionData) => {
+    const response = await api.post('/api/transactions', transactionData);
+    return response.data;
+  },
+
+  updateTransaction: async (id, transactionData) => {
+    const response = await api.put(`/api/transactions/${id}`, transactionData);
+    return response.data;
+  },
+
+  deleteTransaction: async (id) => {
+    const response = await api.delete(`/api/transactions/${id}`);
+    return response.data;
+  },
+};
