@@ -10,16 +10,14 @@ const api = axios.create({
   },
 });
 
-// Add token to requests automatically
+// Automatically add token to every request
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// Handle response errors
+// Handle 401 unauthorized responses
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -32,8 +30,9 @@ api.interceptors.response.use(
   }
 );
 
-// AUTH API
-// AUTH API
+//
+// 🧩 AUTH API (Users)
+//
 export const authAPI = {
   signup: async (userData) => {
     const response = await api.post('/api/users/register', userData);
@@ -45,70 +44,70 @@ export const authAPI = {
     return response.data;
   },
 
-  getUser: async () => {
-    const response = await api.get('/api/users/me');
+  updateParentalContact: async (contactData) => {
+    const response = await api.put('/api/users/parental-contact', contactData);
     return response.data;
-  }
+  },
 };
 
+//
+// 💸 EXPENSE API
+//
+export const expenseAPI = {
+  getExpenses: async (filters = {}) => {
+    const response = await api.get('/api/expenses', { params: filters });
+    return response.data;
+  },
 
-// CATEGORY API
-export const categoryAPI = {
-  getCategories: async () => {
-    const response = await api.get('/api/categories');
+  addExpense: async (expenseData) => {
+    const response = await api.post('/api/expenses/add-expense', expenseData);
     return response.data;
   },
-  
-  addCategory: async (categoryData) => {
-    const response = await api.post('/api/categories', categoryData);
+
+  getInsights: async () => {
+    const response = await api.get('/api/expenses/insights');
     return response.data;
   },
-  
-  updateCategory: async (id, categoryData) => {
-    const response = await api.put(`/api/categories/${id}`, categoryData);
-    return response.data;
-  },
-  
-  deleteCategory: async (id) => {
-    const response = await api.delete(`/api/categories/${id}`);
-    return response.data;
-  }
 };
 
-// TRANSACTION API
-export const transactionAPI = {
-  getTransactions: async () => {
-    const response = await api.get('/api/transactions');
+//
+// 🔁 RECURRING EXPENSE API
+//
+export const recurringExpenseAPI = {
+  getAll: async () => {
+    const response = await api.get('/api/recurring-expenses');
     return response.data;
   },
-  
-  addTransaction: async (transactionData) => {
-    const response = await api.post('/api/transactions', transactionData);
+
+  addRecurring: async (data) => {
+    const response = await api.post('/api/recurring-expenses', data);
     return response.data;
   },
-  
-  updateTransaction: async (id, transactionData) => {
-    const response = await api.put(`/api/transactions/${id}`, transactionData);
-    return response.data;
-  },
-  
-  deleteTransaction: async (id) => {
-    const response = await api.delete(`/api/transactions/${id}`);
-    return response.data;
-  }
 };
 
-// SETTINGS API
-export const settingsAPI = {
-  getSettings: async (userId) => {
-    const response = await api.get(`/api/users/${userId}/settings`);
+//
+// 🧾 OCR API
+//
+export const ocrAPI = {
+  uploadBill: async (file) => {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await api.post('/api/ocr/process', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return response.data;
   },
-  
-  updateSettings: async (userId, settings) => {
-    const response = await api.put(`/api/users/${userId}/settings`, settings);
+};
+
+//
+// 💬 CHAT API
+//
+export const chatAPI = {
+  sendMessage: async (message) => {
+    const response = await api.post('/api/chat', { message });
     return response.data;
-  }
+  },
 };
 
 export default api;
