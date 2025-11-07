@@ -24,7 +24,9 @@ import { Label } from "../Components/ui/label";
 import { Badge } from "../Components/ui/badge";
 import { useAppData } from "../Contexts/AppDataContext";
 import { useAuth } from "../Contexts/AuthContext";
-import categoryData from "../Entities/Category.json";
+import { useToast } from "../hooks/use-toast";
+import { Skeleton } from "../Components/ui/skeleton";
+
 
 // Function to pick category icon
 export const getCategoryIcon = (cat) => {
@@ -43,7 +45,8 @@ export const getCategoryIcon = (cat) => {
 };
 
 export default function Categories() {
-  const { categories, transactions, totalBudget, totalSpent, remaining, loading, addCategory, updateCategory, deleteCategory, reloadData } = useAppData();
+  const { categories, transactions, totalBudget, totalSpent, remaining, loading, createCategory, updateCategory, deleteCategory, reloadData } = useAppData();
+  const { toast } = useToast();
 
   // Force reload data when Categories page loads
   React.useEffect(() => {
@@ -87,22 +90,30 @@ export default function Categories() {
         await updateCategory(editingCategory.id, {
           name: formData.name,
           budget: budgetValue,
-          icon: formData.color
+          color: formData.color
         });
       } else {
-        await addCategory({
+        await createCategory({
           name: formData.name,
           budget: budgetValue,
-          icon: formData.color
+          color: formData.color
         });
       }
 
       setFormData({ name: "", budget: "", color: "gradient-pink-purple" });
       setEditingCategory(null);
       setShowForm(false);
+      toast({
+        title: "Success",
+        description: `Category ${editingCategory ? 'updated' : 'created'} successfully`,
+      });
     } catch (error) {
       console.error('Failed to save category:', error);
-      // You can add toast notification here
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || `Failed to ${editingCategory ? 'update' : 'create'} category`,
+        variant: "destructive",
+      });
     }
   };
 
@@ -115,9 +126,17 @@ export default function Categories() {
   const handleDelete = async (id) => {
     try {
       await deleteCategory(id);
+      toast({
+        title: "Success",
+        description: "Category deleted successfully",
+      });
     } catch (error) {
       console.error('Failed to delete category:', error);
-      // You can add toast notification here
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to delete category",
+        variant: "destructive",
+      });
     }
   };
 
@@ -153,7 +172,24 @@ export default function Categories() {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {enrichedCategories.map((cat, index) => (
+          {loading ? (
+            Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="card-base gradient-pink-purple">
+                <div className="p-6 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="w-10 h-10 rounded-full" />
+                    <Skeleton className="h-6 w-24" />
+                  </div>
+                  <Skeleton className="h-2 w-full" />
+                  <div className="flex justify-between">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-20" />
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            enrichedCategories.map((cat, index) => (
             <motion.div key={cat.id} initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1, type: "spring" }} whileHover={{ scale: 1.05 }}
               className={`card-base ${cat.isOverBudget ? "gradient-overbudget" : cat.color}`}
             >
@@ -190,7 +226,8 @@ export default function Categories() {
                 )}
               </CardContent>
             </motion.div>
-          ))}
+          ))
+          )}
         </div>
 
         <AnimatePresence>

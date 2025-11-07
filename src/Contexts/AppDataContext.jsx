@@ -1,56 +1,130 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
 import { categoryAPI, transactionAPI } from "../api/api";
-import categoryData from "../Entities/Category.json";
 
 const AppDataContext = createContext();
 
 export const AppDataProvider = ({ children }) => {
-  // --- SOURCE OF TRUTH STATE ---
   const [transactions, setTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [monthlyBudget, setMonthlyBudget] = useState(12000);
-  const [user, setUser] = useState(() => {
-    return JSON.parse(localStorage.getItem("user")) || null;
-  });
+  const [monthlyBudget, setMonthlyBudget] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // --- FETCH DATA FROM API ---
-  const fetchCategories = async () => {
-    try {
-      const data = await categoryAPI.getCategories();
-      setCategories(data);
-    } catch (error) {
-      console.error('Failed to fetch categories:', error);
-      // Fallback to default categories
-      setCategories(categoryData.map(cat => ({
-        id: cat.id.toString(),
-        name: cat.name,
-        budget: 0,
-        color: cat.color || "gradient-pink-purple",
-        type: cat.type
-      })));
-    }
-  };
-
-  const fetchTransactions = async () => {
-    try {
-      const data = await transactionAPI.getTransactions();
-      setTransactions(data);
-    } catch (error) {
-      console.error('Failed to fetch transactions:', error);
-      setTransactions([]);
-    }
-  };
-
-  // Load data on mount
+  // Load data on mount if user is authenticated
   useEffect(() => {
-    if (user) {
-      fetchCategories();
-      fetchTransactions();
+    const token = localStorage.getItem('token');
+    if (token) {
+      loadAllData();
     }
-  }, [user]);
+  }, []);
 
-  // --- DERIVED STATE ---
+  const loadAllData = async () => {
+    try {
+      setLoading(true);
+      const [categoriesData, transactionsData] = await Promise.all([
+        categoryAPI.getAll(),
+        transactionAPI.getAll()
+      ]);
+      
+      setCategories(categoriesData.categories || []);
+      setTransactions(transactionsData.transactions || []);
+      
+      // Calculate monthly budget from categories
+      const totalBudget = categoriesData.categories?.reduce((sum, cat) => sum + (cat.budget || 0), 0) || 0;
+      setMonthlyBudget(totalBudget);
+    } catch (err) {
+      console.error('Failed to load data:', err);
+      setError(err.response?.data?.message || 'Failed to load data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Category operations
+  const createCategory = async (categoryData) => {
+    try {
+      setLoading(true);
+      const response = await categoryAPI.create(categoryData);
+      setCategories(prev => [...prev, response.category]);
+      return response.category;
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to create category');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateCategory = async (id, categoryData) => {
+    try {
+      setLoading(true);
+      const response = await categoryAPI.update(id, categoryData);
+      setCategories(prev => prev.map(cat => cat.id === id ? response.category : cat));
+      return response.category;
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to update category');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteCategory = async (id) => {
+    try {
+      setLoading(true);
+      await categoryAPI.delete(id);
+      setCategories(prev => prev.filter(cat => cat.id !== id));
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to delete category');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Transaction operations
+  const createTransaction = async (transactionData) => {
+    try {
+      setLoading(true);
+      const response = await transactionAPI.create(transactionData);
+      setTransactions(prev => [...prev, response.transaction]);
+      return response.transaction;
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to create transaction');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateTransaction = async (id, transactionData) => {
+    try {
+      setLoading(true);
+      const response = await transactionAPI.update(id, transactionData);
+      setTransactions(prev => prev.map(tx => tx.id === id ? response.transaction : tx));
+      return response.transaction;
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to update transaction');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteTransaction = async (id) => {
+    try {
+      setLoading(true);
+      await transactionAPI.delete(id);
+      setTransactions(prev => prev.filter(tx => tx.id !== id));
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to delete transaction');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Computed values
   const enrichedCategories = useMemo(() => {
     return categories.map(cat => {
       const spent = transactions
@@ -63,6 +137,10 @@ export const AppDataProvider = ({ children }) => {
     });
   }, [transactions, categories]);
 
+  const totalBudget = useMemo(() => {
+    return categories.reduce((sum, cat) => sum + (cat.budget || 0), 0);
+  }, [categories]);
+
   const totalSpent = useMemo(() => {
     return transactions
       .filter(tx => tx.type === 'expense')
@@ -70,127 +148,44 @@ export const AppDataProvider = ({ children }) => {
   }, [transactions]);
 
   const remaining = useMemo(() => {
-    return monthlyBudget - totalSpent;
-  }, [monthlyBudget, totalSpent]);
-
-  // API CRUD Functions
-  const addCategory = async (categoryData) => {
-    try {
-      setLoading(true);
-      const newCategory = await categoryAPI.addCategory(categoryData);
-      setCategories(prev => [...prev, newCategory]);
-      return newCategory;
-    } catch (error) {
-      console.error('Failed to add category:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateCategory = async (id, categoryData) => {
-    try {
-      setLoading(true);
-      const updatedCategory = await categoryAPI.updateCategory(id, categoryData);
-      setCategories(prev => prev.map(cat => cat.id === id ? updatedCategory : cat));
-      return updatedCategory;
-    } catch (error) {
-      console.error('Failed to update category:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const deleteCategory = async (id) => {
-    try {
-      setLoading(true);
-      await categoryAPI.deleteCategory(id);
-      setCategories(prev => prev.filter(cat => cat.id !== id));
-    } catch (error) {
-      console.error('Failed to delete category:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const addTransaction = async (transactionData) => {
-    try {
-      setLoading(true);
-      const newTransaction = await transactionAPI.addTransaction(transactionData);
-      setTransactions(prev => [newTransaction, ...prev]);
-      return newTransaction;
-    } catch (error) {
-      console.error('Failed to add transaction:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateTransaction = async (id, transactionData) => {
-    try {
-      setLoading(true);
-      const updatedTransaction = await transactionAPI.updateTransaction(id, transactionData);
-      setTransactions(prev => prev.map(tx => tx.id === id ? updatedTransaction : tx));
-      return updatedTransaction;
-    } catch (error) {
-      console.error('Failed to update transaction:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const deleteTransaction = async (id) => {
-    try {
-      setLoading(true);
-      await transactionAPI.deleteTransaction(id);
-      setTransactions(prev => prev.filter(tx => tx.id !== id));
-    } catch (error) {
-      console.error('Failed to delete transaction:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
+    return totalBudget - totalSpent;
+  }, [totalBudget, totalSpent]);
 
   const reloadData = () => {
-    if (user) {
-      fetchCategories();
-      fetchTransactions();
-    }
+    loadAllData();
   };
 
-  const recomputeCategoryStats = () => {
-    // This will trigger a re-render and recalculation of enrichedCategories
-  };
-
-  // --- CONTEXT VALUE ---
   const value = useMemo(() => ({
     transactions,
-    setTransactions,
     categories,
-    setCategories,
     enrichedCategories,
     monthlyBudget,
-    setMonthlyBudget,
-    totalBudget: monthlyBudget,
+    totalBudget,
     totalSpent,
     remaining,
-    user,
-    setUser,
     loading,
-    addCategory,
+    error,
+    createCategory,
     updateCategory,
     deleteCategory,
-    addTransaction,
+    createTransaction,
     updateTransaction,
     deleteTransaction,
-    recomputeCategoryStats,
     reloadData,
-  }), [transactions, categories, enrichedCategories, monthlyBudget, totalSpent, remaining, user, loading]);
+    setCategories,
+    setTransactions,
+    setMonthlyBudget,
+  }), [
+    transactions, 
+    categories, 
+    enrichedCategories, 
+    monthlyBudget, 
+    totalBudget, 
+    totalSpent, 
+    remaining, 
+    loading, 
+    error
+  ]);
   
   return (
     <AppDataContext.Provider value={value}>

@@ -5,9 +5,12 @@ import { Edit, Trash2 } from "lucide-react";
 import TransactionForm from "../Components/transactions/TransactionForm";
 import { useAppData } from "../Contexts/AppDataContext";
 import OCRScanner from "../Components/OCRScanner";
+import { useToast } from "../hooks/use-toast";
+import { Skeleton } from "../Components/ui/skeleton";
 
 export default function Transactions() {
-  const { transactions, categories, loading, addTransaction, updateTransaction, deleteTransaction } = useAppData();
+  const { transactions, categories, loading, createTransaction, updateTransaction, deleteTransaction } = useAppData();
+  const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [editingTx, setEditingTx] = useState(null);
 
@@ -24,8 +27,17 @@ export default function Transactions() {
   const handleDelete = async (id) => {
     try {
       await deleteTransaction(id);
+      toast({
+        title: "Success",
+        description: "Transaction deleted successfully",
+      });
     } catch (error) {
       console.error('Failed to delete transaction:', error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to delete transaction",
+        variant: "destructive",
+      });
     }
   };
 
@@ -62,13 +74,22 @@ export default function Transactions() {
       if (editingTx) {
         await updateTransaction(editingTx.id, transactionData);
       } else {
-        await addTransaction(transactionData);
+        await createTransaction(transactionData);
       }
 
       setShowForm(false);
       setEditingTx(null);
+      toast({
+        title: "Success",
+        description: `Transaction ${editingTx ? 'updated' : 'created'} successfully`,
+      });
     } catch (error) {
       console.error('Failed to save transaction:', error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || `Failed to ${editingTx ? 'update' : 'create'} transaction`,
+        variant: "destructive",
+      });
     }
   };
 
@@ -94,7 +115,25 @@ export default function Transactions() {
 
       {/* Transactions Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {transactions.map((tx) => {
+        {loading ? (
+          Array.from({ length: 6 }).map((_, index) => (
+            <Card key={index} className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg">
+              <div className="p-4 space-y-4">
+                <div className="flex justify-between items-center">
+                  <Skeleton className="h-6 w-24" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-8 w-8" />
+                    <Skeleton className="h-8 w-8" />
+                  </div>
+                </div>
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-40" />
+                <Skeleton className="h-4 w-28" />
+              </div>
+            </Card>
+          ))
+        ) : (
+          transactions.map((tx) => {
           const category = categories.find((c) => c.id === tx.category_id);
           const categoryName = category?.name || tx.category || "Uncategorized";
 
@@ -144,7 +183,8 @@ export default function Transactions() {
               </CardContent>
             </Card>
           );
-        })}
+        })
+        )}
       </div>
 
       {/* Transaction Form Modal */}
