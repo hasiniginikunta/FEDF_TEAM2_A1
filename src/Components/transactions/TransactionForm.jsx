@@ -47,11 +47,11 @@ const handleSubmit = (e) => {
   const matchedCategory = categories.find((c) => String(c.id) === categoryId);
 
   onSubmit({
+    title: formData.description,
     amount: parseFloat(formData.amount),
-    category: matchedCategory ? matchedCategory.name : "Uncategorized",
+    category: matchedCategory ? matchedCategory.id : null,
     type: formData.type,
-    date: formData.date,
-    note: formData.description
+    date: formData.date
   });
 };
 

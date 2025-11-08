@@ -54,20 +54,22 @@ export default function Transactions() {
         );
         
         transactionData = {
+          title: tx.title,
           amount: parseFloat(tx.amount),
-          category: matchedCategory?.name || tx.category || "Uncategorized",
+          category: matchedCategory?.id || null,
           type: "expense", // OCR scanned receipts are always expenses
-          date: tx.date,
-          note: tx.title
+          date: tx.date
         };
       } else {
-        // Regular transaction format
+        // Regular transaction format - match backend expected fields
+        const matchedCategory = categories.find(cat => cat.name === tx.category);
+        
         transactionData = {
-          amount: tx.amount,
-          category: tx.category || "Uncategorized",
+          title: tx.note || tx.description,
+          amount: parseFloat(tx.amount),
+          category: matchedCategory?.id || null,
           type: tx.type,
-          date: tx.date,
-          note: tx.description
+          date: tx.date
         };
       }
 
