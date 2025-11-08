@@ -64,7 +64,8 @@ export default function Transactions() {
       console.log('🔍 Available categories:', categories);
       
       // Handle OCR data format (from OCRScanner) vs regular transaction format
-      const isOCRData = tx.title && !tx.description && typeof tx.category === 'string';
+      // OCR data has category as name string, form data has category as ID
+      const isOCRData = typeof tx.category === 'string' && categories.some(cat => cat.name.toLowerCase() === tx.category?.toLowerCase());
       
       let transactionData;
       if (isOCRData) {
@@ -92,6 +93,8 @@ export default function Transactions() {
           notes: tx.notes || ""
         };
       }
+      
+      console.log('🔍 isOCRData:', isOCRData, 'tx.category type:', typeof tx.category);
 
       // DEBUG: Validate category field
       console.log('🔍 Final transaction data:', transactionData);
