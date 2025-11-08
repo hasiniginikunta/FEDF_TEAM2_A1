@@ -116,7 +116,7 @@ export default api;
 // 🏷️ CATEGORY API
 //
 export const categoryAPI = {
-  getAll: async () => {
+  getCategories: async () => {
     const response = await api.get('/api/categories');
     return response.data;
   },
@@ -141,7 +141,7 @@ export const categoryAPI = {
 // 💰 TRANSACTION API
 //
 export const transactionAPI = {
-  getAll: async () => {
+  getTransactions: async () => {
     const response = await api.get('/api/transactions');
     return response.data;
   },

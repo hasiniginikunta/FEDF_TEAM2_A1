@@ -55,25 +55,15 @@ export default function SignupBudgetPage() {
     e.preventDefault();
 
     try {
-      // Prepare categories with budget allocations
-      const categoriesWithBudget = categoryData.map(cat => ({
-        name: cat.name,
-        budget: allocations[cat.name] || 0,
-        icon: cat.icon || 'tag'
-      }));
-
       const userData = {
         name: personal.fullName,
         email: personal.email,
-        password: 'defaultPassword123', // You might want to add password field
-        monthlyBudget: budget,
-        categories: categoriesWithBudget
+        password: 'defaultPassword123' // You should add a password field to the form
       };
 
       await signup(userData);
     } catch (error) {
       console.error('Signup failed:', error);
-      // You can add toast notification here
     }
   };
 

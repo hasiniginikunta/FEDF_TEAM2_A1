@@ -37,14 +37,11 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     try {
-      const userData = {
+      await signup({
         name: signupForm.name,
         email: signupForm.email,
-        password: signupForm.password,
-        monthlyBudget: 12000,
-        categories: []
-      };
-      await signup(userData);
+        password: signupForm.password
+      });
     } catch (err) {
       setError(err.message);
     }
