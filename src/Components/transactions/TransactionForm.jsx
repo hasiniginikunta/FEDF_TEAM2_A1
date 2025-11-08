@@ -49,7 +49,7 @@ const handleSubmit = (e) => {
   onSubmit({
     title: formData.description,
     amount: parseFloat(formData.amount),
-    category: matchedCategory ? matchedCategory.id : null,
+    category: matchedCategory ? matchedCategory.name : "Uncategorized",
     type: formData.type,
     date: formData.date
   });
@@ -130,7 +130,7 @@ const handleSubmit = (e) => {
                 </SelectTrigger>
                 <SelectContent>
                   {filteredCategories.length === 0 && (
-                    <SelectItem value="" disabled>
+                    <SelectItem value="no-categories" disabled>
                       No categories available
                     </SelectItem>
                   )}

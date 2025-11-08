@@ -65,13 +65,15 @@ export default function Transactions() {
         const matchedCategory = categories.find(cat => cat.name === tx.category);
         
         transactionData = {
-          title: tx.note || tx.description,
+          title: tx.title || tx.note || tx.description,
           amount: parseFloat(tx.amount),
           category: matchedCategory?.id || null,
           type: tx.type,
           date: tx.date
         };
       }
+
+      console.log('Sending transaction data:', transactionData);
 
       if (editingTx) {
         await updateTransaction(editingTx.id, transactionData);

@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const BASE_URL = 'https://hisabkitab-backend-tjik.onrender.com';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://hisabkitab-backend-tjik.onrender.com/api';
+
+console.log('API Base URL:', BASE_URL);
 
 // Create axios instance
 const api = axios.create({
@@ -35,17 +37,17 @@ api.interceptors.response.use(
 //
 export const authAPI = {
   signup: async (userData) => {
-    const response = await api.post('/api/auth/signup', userData);
+    const response = await api.post('/auth/signup', userData);
     return response.data;
   },
 
   login: async (credentials) => {
-    const response = await api.post('/api/auth/login', credentials);
+    const response = await api.post('/auth/login', credentials);
     return response.data;
   },
 
   updateParentalContact: async (contactData) => {
-    const response = await api.put('/api/users/parental-contact', contactData);
+    const response = await api.put('/users/parental-contact', contactData);
     return response.data;
   },
 };
@@ -117,42 +119,42 @@ export default api;
 //
 export const categoryAPI = {
   getAll: async () => {
-    const response = await api.get('/api/categories');
+    const response = await api.get('/categories');
     return response.data;
   },
 
   getCategories: async () => {
-    const response = await api.get('/api/categories');
+    const response = await api.get('/categories');
     return response.data;
   },
 
   create: async (categoryData) => {
-    const response = await api.post('/api/categories', categoryData);
+    const response = await api.post('/categories', categoryData);
     return response.data;
   },
 
   addCategory: async (categoryData) => {
-    const response = await api.post('/api/categories', categoryData);
+    const response = await api.post('/categories', categoryData);
     return response.data;
   },
 
   update: async (id, categoryData) => {
-    const response = await api.put(`/api/categories/${id}`, categoryData);
+    const response = await api.put(`/categories/${id}`, categoryData);
     return response.data;
   },
 
   updateCategory: async (id, categoryData) => {
-    const response = await api.put(`/api/categories/${id}`, categoryData);
+    const response = await api.put(`/categories/${id}`, categoryData);
     return response.data;
   },
 
   delete: async (id) => {
-    const response = await api.delete(`/api/categories/${id}`);
+    const response = await api.delete(`/categories/${id}`);
     return response.data;
   },
 
   deleteCategory: async (id) => {
-    const response = await api.delete(`/api/categories/${id}`);
+    const response = await api.delete(`/categories/${id}`);
     return response.data;
   },
 };
@@ -162,42 +164,42 @@ export const categoryAPI = {
 //
 export const transactionAPI = {
   getAll: async () => {
-    const response = await api.get('/api/transactions');
+    const response = await api.get('/transactions');
     return response.data;
   },
 
   getTransactions: async () => {
-    const response = await api.get('/api/transactions');
+    const response = await api.get('/transactions');
     return response.data;
   },
 
   create: async (transactionData) => {
-    const response = await api.post('/api/transactions', transactionData);
+    const response = await api.post('/transactions', transactionData);
     return response.data;
   },
 
   addTransaction: async (transactionData) => {
-    const response = await api.post('/api/transactions', transactionData);
+    const response = await api.post('/transactions', transactionData);
     return response.data;
   },
 
   update: async (id, transactionData) => {
-    const response = await api.put(`/api/transactions/${id}`, transactionData);
+    const response = await api.put(`/transactions/${id}`, transactionData);
     return response.data;
   },
 
   updateTransaction: async (id, transactionData) => {
-    const response = await api.put(`/api/transactions/${id}`, transactionData);
+    const response = await api.put(`/transactions/${id}`, transactionData);
     return response.data;
   },
 
   delete: async (id) => {
-    const response = await api.delete(`/api/transactions/${id}`);
+    const response = await api.delete(`/transactions/${id}`);
     return response.data;
   },
 
   deleteTransaction: async (id) => {
-    const response = await api.delete(`/api/transactions/${id}`);
+    const response = await api.delete(`/transactions/${id}`);
     return response.data;
   },
 };
