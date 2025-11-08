@@ -60,12 +60,18 @@ export default function Transactions() {
       // DEBUG: Log incoming form data
       console.log('🔍 Raw form data received:', tx);
       console.log('🔍 tx.category value:', tx.category);
+      console.log('🔍 tx.type value:', tx.type);
       console.log('🔍 tx keys:', Object.keys(tx));
+      console.log('🔍 tx object:', tx);
       console.log('🔍 Available categories:', categories);
       
       // Handle OCR data format (from OCRScanner) vs regular transaction format
-      // OCR data has category as name string, form data has category as ID
-      const isOCRData = typeof tx.category === 'string' && categories.some(cat => cat.name.toLowerCase() === tx.category?.toLowerCase());
+      // OCR data: has category as name string AND comes from OCR scanner
+      // Form data: has category as ObjectId string
+      const isOCRData = tx.title && tx.amount && tx.date && 
+                        typeof tx.category === 'string' && 
+                        categories.some(cat => cat.name.toLowerCase() === tx.category?.toLowerCase()) &&
+                        !tx.type; // OCR data doesn't have type field
       
       let transactionData;
       if (isOCRData) {
@@ -99,6 +105,7 @@ export default function Transactions() {
       // DEBUG: Validate category field
       console.log('🔍 Final transaction data:', transactionData);
       console.log('🔍 transactionData.category:', transactionData.category);
+      console.log('🔍 transactionData.type:', transactionData.type);
       if (!transactionData.category) {
         console.error('❌ CATEGORY MISSING! Form data:', tx);
         throw new Error('Category is required - please select a category');

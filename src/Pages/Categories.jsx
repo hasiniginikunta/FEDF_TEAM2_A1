@@ -119,7 +119,8 @@ export default function Categories() {
     try {
       const categoryData = {
         name: formData.name.trim(),
-        type: formData.type
+        type: formData.type,
+        budget: formData.budget ? parseFloat(formData.budget) : 0
       };
       
       console.log('Sending category data:', categoryData);
@@ -128,9 +129,11 @@ export default function Categories() {
       if (editingCategory && (editingCategory.id || editingCategory._id)) {
         const categoryId = editingCategory.id || editingCategory._id;
         console.log('Updating category with ID:', categoryId);
+        console.log('Update data:', categoryData);
         await updateCategory(categoryId, categoryData);
       } else {
         console.log('Creating new category');
+        console.log('Create data:', categoryData);
         await createCategory(categoryData);
       }
 
