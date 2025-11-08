@@ -58,7 +58,7 @@ export default function Transactions() {
   const handleSubmit = async (tx) => {
     try {
       // Handle OCR data format (from OCRScanner) vs regular transaction format
-      const isOCRData = tx.title && !tx.description;
+      const isOCRData = tx.title && !tx.description && typeof tx.category === 'string';
       
       let transactionData;
       if (isOCRData) {
@@ -70,20 +70,20 @@ export default function Transactions() {
         transactionData = {
           title: tx.title,
           amount: parseFloat(tx.amount),
-          category: matchedCategory?.id || null,
+          category: matchedCategory?.id || matchedCategory?._id,
           type: "expense", // OCR scanned receipts are always expenses
-          date: tx.date
+          date: tx.date,
+          notes: tx.notes || ""
         };
       } else {
-        // Regular transaction format - match backend expected fields
-        const matchedCategory = categories.find(cat => cat.name === tx.category);
-        
+        // Regular transaction format from form - category is already an ID
         transactionData = {
-          title: tx.title || tx.note || tx.description,
+          title: tx.title,
           amount: parseFloat(tx.amount),
-          category: matchedCategory?.id || null,
+          category: tx.category, // This is already a category ID from the form
           type: tx.type,
-          date: tx.date
+          date: tx.date,
+          notes: tx.notes || ""
         };
       }
 
@@ -106,9 +106,19 @@ export default function Transactions() {
       console.error('Failed to save transaction:', error);
       console.error('Error response:', error.response?.data);
       console.error('Error status:', error.response?.status);
+      
+      // Handle backend validation errors
+      let errorMessage = `Failed to ${editingTx ? 'update' : 'create'} transaction`;
+      
+      if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        errorMessage = error.response.data.errors[0]?.msg || errorMessage;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
       toast({
         title: "Error",
-        description: error.response?.data?.message || `Failed to ${editingTx ? 'update' : 'create'} transaction`,
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -155,7 +165,7 @@ export default function Transactions() {
           ))
         ) : (
           transactions.map((tx) => {
-          const category = categories.find((c) => c.id === tx.category_id);
+          const category = categories.find((c) => c.id === tx.category_id || c._id === tx.category_id);
           const categoryName = category?.name || tx.category || "Uncategorized";
 
           const overspent =

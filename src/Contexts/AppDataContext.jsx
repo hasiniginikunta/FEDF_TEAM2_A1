@@ -92,12 +92,30 @@ export const AppDataProvider = ({ children }) => {
   const createTransaction = async (transactionData) => {
     try {
       setLoading(true);
+      
+      // Validate required fields before sending
+      if (!transactionData.title?.trim()) {
+        throw new Error('Title is required');
+      }
+      if (!transactionData.amount || transactionData.amount <= 0) {
+        throw new Error('Amount must be greater than 0');
+      }
+      if (!transactionData.category) {
+        throw new Error('Category is required');
+      }
+      if (!transactionData.type || !['income', 'expense'].includes(transactionData.type)) {
+        throw new Error('Type must be income or expense');
+      }
+      if (!transactionData.date) {
+        throw new Error('Date is required');
+      }
+      
       const response = await transactionAPI.create(transactionData);
       const newTransaction = response.transaction || response;
       setTransactions(prev => [...prev, newTransaction]);
       return newTransaction;
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create transaction');
+      setError(err.response?.data?.message || err.message || 'Failed to create transaction');
       throw err;
     } finally {
       setLoading(false);
@@ -107,12 +125,30 @@ export const AppDataProvider = ({ children }) => {
   const updateTransaction = async (id, transactionData) => {
     try {
       setLoading(true);
+      
+      // Validate required fields before sending
+      if (!transactionData.title?.trim()) {
+        throw new Error('Title is required');
+      }
+      if (!transactionData.amount || transactionData.amount <= 0) {
+        throw new Error('Amount must be greater than 0');
+      }
+      if (!transactionData.category) {
+        throw new Error('Category is required');
+      }
+      if (!transactionData.type || !['income', 'expense'].includes(transactionData.type)) {
+        throw new Error('Type must be income or expense');
+      }
+      if (!transactionData.date) {
+        throw new Error('Date is required');
+      }
+      
       const response = await transactionAPI.update(id, transactionData);
       const updatedTransaction = response.transaction || response;
       setTransactions(prev => prev.map(tx => tx.id === id ? updatedTransaction : tx));
       return updatedTransaction;
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update transaction');
+      setError(err.response?.data?.message || err.message || 'Failed to update transaction');
       throw err;
     } finally {
       setLoading(false);

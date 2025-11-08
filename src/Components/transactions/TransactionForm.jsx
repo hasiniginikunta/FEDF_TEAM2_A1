@@ -11,10 +11,11 @@ import { X, Save, ArrowUpRight, ArrowDownRight } from "lucide-react";
 export default function TransactionForm({ transaction, categories, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
     amount: transaction?.amount || "",
-    description: transaction?.description || "",
-    category_id: String(transaction?.category_id || ""),
+    description: transaction?.title || transaction?.description || "",
+    category_id: String(transaction?.category_id || transaction?.category || ""),
     type: transaction?.type || "expense",
     date: transaction?.date || new Date().toISOString().split("T")[0],
+    notes: transaction?.notes || ""
   });
 
   const [filteredCategories, setFilteredCategories] = useState([]);
@@ -40,18 +41,41 @@ export default function TransactionForm({ transaction, categories, onSubmit, onC
 const handleSubmit = (e) => {
   e.preventDefault();
   
-  // Ensure category_id is always string
-  const categoryId = String(formData.category_id);
+  // Validate required fields
+  if (!formData.description?.trim()) {
+    alert('Title is required');
+    return;
+  }
+  
+  const amount = parseFloat(formData.amount);
+  if (!amount || amount <= 0) {
+    alert('Amount must be greater than 0');
+    return;
+  }
+  
+  if (!formData.category_id) {
+    alert('Category is required');
+    return;
+  }
+  
+  if (!formData.type || !['income', 'expense'].includes(formData.type)) {
+    alert('Type must be income or expense');
+    return;
+  }
+  
+  if (!formData.date) {
+    alert('Date is required');
+    return;
+  }
 
-  // Find matching category
-  const matchedCategory = categories.find((c) => String(c.id) === categoryId);
-
+  // Send data in backend expected format
   onSubmit({
-    title: formData.description,
-    amount: parseFloat(formData.amount),
-    category: matchedCategory ? matchedCategory.name : "Uncategorized",
+    title: formData.description.trim(),
+    amount: amount,
+    category: formData.category_id, // Send category ID, not name
     type: formData.type,
-    date: formData.date
+    date: formData.date,
+    notes: formData.notes || ""
   });
 };
 
