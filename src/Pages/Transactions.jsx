@@ -14,6 +14,20 @@ export default function Transactions() {
   const [showForm, setShowForm] = useState(false);
   const [editingTx, setEditingTx] = useState(null);
 
+  // Check if user is logged in
+  React.useEffect(() => {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    
+    console.log('Auth check - Token exists:', !!token);
+    console.log('Auth check - User exists:', !!user);
+    
+    if (!token || !user) {
+      console.log('No auth found, redirecting to login');
+      window.location.href = '/login';
+    }
+  }, []);
+
   const handleAdd = () => {
     setEditingTx(null);
     setShowForm(true);
@@ -74,6 +88,7 @@ export default function Transactions() {
       }
 
       console.log('Sending transaction data:', transactionData);
+      console.log('JWT Token:', localStorage.getItem('token'));
 
       if (editingTx) {
         await updateTransaction(editingTx.id, transactionData);
@@ -89,6 +104,8 @@ export default function Transactions() {
       });
     } catch (error) {
       console.error('Failed to save transaction:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
       toast({
         title: "Error",
         description: error.response?.data?.message || `Failed to ${editingTx ? 'update' : 'create'} transaction`,
