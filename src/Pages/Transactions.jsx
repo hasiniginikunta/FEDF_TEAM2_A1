@@ -57,6 +57,10 @@ export default function Transactions() {
 
   const handleSubmit = async (tx) => {
     try {
+      // DEBUG: Log incoming form data
+      console.log('🔍 Raw form data received:', tx);
+      console.log('🔍 Available categories:', categories);
+      
       // Handle OCR data format (from OCRScanner) vs regular transaction format
       const isOCRData = tx.title && !tx.description && typeof tx.category === 'string';
       
@@ -87,7 +91,14 @@ export default function Transactions() {
         };
       }
 
-      console.log('Sending transaction data:', transactionData);
+      // DEBUG: Validate category field
+      console.log('🔍 Final transaction data:', transactionData);
+      if (!transactionData.category) {
+        console.error('❌ CATEGORY MISSING! Form data:', tx);
+        throw new Error('Category is required - please select a category');
+      }
+      
+      console.log('✅ Sending transaction data:', transactionData);
       console.log('JWT Token:', localStorage.getItem('token'));
 
       if (editingTx) {

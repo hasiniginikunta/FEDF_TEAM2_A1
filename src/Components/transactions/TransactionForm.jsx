@@ -41,6 +41,10 @@ export default function TransactionForm({ transaction, categories, onSubmit, onC
 const handleSubmit = (e) => {
   e.preventDefault();
   
+  // DEBUG: Log form data before validation
+  console.log('🔍 TransactionForm - Raw form data:', formData);
+  console.log('🔍 TransactionForm - Available categories:', categories);
+  
   // Validate required fields
   if (!formData.description?.trim()) {
     alert('Title is required');
@@ -54,7 +58,8 @@ const handleSubmit = (e) => {
   }
   
   if (!formData.category_id) {
-    alert('Category is required');
+    alert('Category is required - please select a category');
+    console.error('❌ Category ID missing:', formData.category_id);
     return;
   }
   
@@ -68,15 +73,21 @@ const handleSubmit = (e) => {
     return;
   }
 
-  // Send data in backend expected format
-  onSubmit({
+  // Prepare data for submission
+  const submissionData = {
     title: formData.description.trim(),
     amount: amount,
     category: formData.category_id, // Send category ID, not name
     type: formData.type,
     date: formData.date,
     notes: formData.notes || ""
-  });
+  };
+  
+  // DEBUG: Log final submission data
+  console.log('✅ TransactionForm - Submitting data:', submissionData);
+  
+  // Send data in backend expected format
+  onSubmit(submissionData);
 };
 
 
@@ -147,7 +158,10 @@ const handleSubmit = (e) => {
               <Label>Category</Label>
               <Select
                 value={String(formData.category_id || "")}
-                onValueChange={(value) => handleChange("category_id", value)}
+                onValueChange={(value) => {
+                  console.log('🔍 Category selected:', value);
+                  handleChange("category_id", value);
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
@@ -158,11 +172,15 @@ const handleSubmit = (e) => {
                       No categories available
                     </SelectItem>
                   )}
-                  {filteredCategories.map((cat) => (
-                    <SelectItem key={cat.id || cat._id} value={String(cat.id || cat._id)}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
+                  {filteredCategories.map((cat) => {
+                    const categoryId = String(cat.id || cat._id);
+                    console.log('🔍 Rendering category:', cat.name, 'ID:', categoryId);
+                    return (
+                      <SelectItem key={categoryId} value={categoryId}>
+                        {cat.name}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
