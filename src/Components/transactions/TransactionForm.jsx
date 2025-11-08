@@ -25,8 +25,8 @@ export default function TransactionForm({ transaction, categories, onSubmit, onC
       let filtered = categories.filter((cat) => cat.type === formData.type || !cat.type);
 
       // Include current category even if type mismatch
-      if (formData.category_id && !filtered.find((c) => String(c.id) === String(formData.category_id))) {
-        const currentCat = categories.find((c) => String(c.id) === String(formData.category_id));
+      if (formData.category_id && !filtered.find((c) => String(c.id || c._id) === String(formData.category_id))) {
+        const currentCat = categories.find((c) => String(c.id || c._id) === String(formData.category_id));
         if (currentCat) filtered.push(currentCat);
       }
 
@@ -159,7 +159,7 @@ const handleSubmit = (e) => {
                     </SelectItem>
                   )}
                   {filteredCategories.map((cat) => (
-                    <SelectItem key={cat.id} value={String(cat.id)}>
+                    <SelectItem key={cat.id || cat._id} value={String(cat.id || cat._id)}>
                       {cat.name}
                     </SelectItem>
                   ))}

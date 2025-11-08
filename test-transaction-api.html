@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Transaction API</title>
+</head>
+<body>
+    <h1>Transaction API Test</h1>
+    <div id="result"></div>
+    
+    <script>
+        async function testTransactionAPI() {
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                // First get categories to use a valid category ID
+                const categoriesResponse = await fetch('https://hisabkitab-backend-tjik.onrender.com/api/categories', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                const categoriesData = await categoriesResponse.json();
+                console.log('Categories:', categoriesData);
+                
+                const categories = categoriesData.categories || categoriesData;
+                if (!categories || categories.length === 0) {
+                    throw new Error('No categories found. Create a category first.');
+                }
+                
+                const firstCategory = categories[0];
+                const categoryId = firstCategory._id || firstCategory.id;
+                
+                // Test transaction data with all required fields
+                const transactionData = {
+                    title: "Test Transaction",
+                    amount: 25.50,
+                    category: categoryId,  // Use actual category ID
+                    type: "expense",
+                    date: "2024-01-15",
+                    notes: "Test transaction from API test"
+                };
+                
+                console.log('Sending transaction data:', transactionData);
+                
+                const response = await fetch('https://hisabkitab-backend-tjik.onrender.com/api/transactions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(transactionData)
+                });
+                
+                const data = await response.json();
+                
+                console.log('Response status:', response.status);
+                console.log('Response data:', data);
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <h2>✅ Success!</h2>
+                        <p>Transaction created: ${JSON.stringify(data, null, 2)}</p>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h2>❌ Error ${response.status}</h2>
+                        <p>Response: ${JSON.stringify(data, null, 2)}</p>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `
+                    <h2>❌ Network Error</h2>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+        
+        // Auto-run test when page loads
+        window.onload = testTransactionAPI;
+    </script>
+</body>
+</html>

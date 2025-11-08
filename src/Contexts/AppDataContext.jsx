@@ -65,7 +65,7 @@ export const AppDataProvider = ({ children }) => {
       setLoading(true);
       const response = await categoryAPI.update(id, categoryData);
       const updatedCategory = response.category || response;
-      setCategories(prev => prev.map(cat => cat.id === id ? updatedCategory : cat));
+      setCategories(prev => prev.map(cat => (cat.id === id || cat._id === id) ? updatedCategory : cat));
       return updatedCategory;
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update category');
@@ -79,7 +79,7 @@ export const AppDataProvider = ({ children }) => {
     try {
       setLoading(true);
       await categoryAPI.delete(id);
-      setCategories(prev => prev.filter(cat => cat.id !== id));
+      setCategories(prev => prev.filter(cat => cat.id !== id && cat._id !== id));
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to delete category');
       throw err;
@@ -143,9 +143,10 @@ export const AppDataProvider = ({ children }) => {
         throw new Error('Date is required');
       }
       
+      console.log('Updating transaction with data:', transactionData);
       const response = await transactionAPI.update(id, transactionData);
       const updatedTransaction = response.transaction || response;
-      setTransactions(prev => prev.map(tx => tx.id === id ? updatedTransaction : tx));
+      setTransactions(prev => prev.map(tx => (tx.id === id || tx._id === id) ? updatedTransaction : tx));
       return updatedTransaction;
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Failed to update transaction');
@@ -159,7 +160,7 @@ export const AppDataProvider = ({ children }) => {
     try {
       setLoading(true);
       await transactionAPI.delete(id);
-      setTransactions(prev => prev.filter(tx => tx.id !== id));
+      setTransactions(prev => prev.filter(tx => tx.id !== id && tx._id !== id));
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to delete transaction');
       throw err;

@@ -125,9 +125,12 @@ export default function Categories() {
       console.log('Sending category data:', categoryData);
       console.log('JWT Token:', localStorage.getItem('token'));
       
-      if (editingCategory) {
-        await updateCategory(editingCategory.id, categoryData);
+      if (editingCategory && (editingCategory.id || editingCategory._id)) {
+        const categoryId = editingCategory.id || editingCategory._id;
+        console.log('Updating category with ID:', categoryId);
+        await updateCategory(categoryId, categoryData);
       } else {
+        console.log('Creating new category');
         await createCategory(categoryData);
       }
 
@@ -171,8 +174,10 @@ export default function Categories() {
     setShowForm(true);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (categoryId) => {
     try {
+      const id = categoryId.id || categoryId._id || categoryId;
+      console.log('Deleting category with ID:', id);
       await deleteCategory(id);
       toast({
         title: "Success",
@@ -250,7 +255,7 @@ export default function Categories() {
                 </div>
                 <div className="flex gap-2">
                   <Button variant="ghost" size="sm" onClick={() => handleEdit(cat)} className="text-gray-700 hover:text-purple-600"><Edit size={16} /></Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDelete(cat.id)} className="text-red-500 hover:text-red-700"><Trash2 size={16} /></Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(cat)} className="text-red-500 hover:text-red-700"><Trash2 size={16} /></Button>
                 </div>
               </CardHeader>
               <CardContent className="card-content">
