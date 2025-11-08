@@ -127,10 +127,13 @@ export default function Categories() {
       console.log('JWT Token:', localStorage.getItem('token'));
       
       if (editingCategory && (editingCategory.id || editingCategory._id)) {
-        const categoryId = editingCategory.id || editingCategory._id;
-        console.log('Updating category with ID:', categoryId);
-        console.log('Update data:', categoryData);
-        await updateCategory(categoryId, categoryData);
+        // Backend doesn't support category updates, show error
+        toast({
+          title: "Error",
+          description: "Category editing is not supported by the backend. Please create a new category instead.",
+          variant: "destructive",
+        });
+        return;
       } else {
         console.log('Creating new category');
         console.log('Create data:', categoryData);
@@ -178,9 +181,10 @@ export default function Categories() {
   };
 
   const handleDelete = async (categoryId) => {
+    // Check if backend supports deletion
     try {
       const id = categoryId.id || categoryId._id || categoryId;
-      console.log('Deleting category with ID:', id);
+      console.log('Attempting to delete category with ID:', id);
       await deleteCategory(id);
       toast({
         title: "Success",
@@ -188,11 +192,21 @@ export default function Categories() {
       });
     } catch (error) {
       console.error('Failed to delete category:', error);
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to delete category",
-        variant: "destructive",
-      });
+      
+      // If 404 error, backend doesn't support deletion
+      if (error.response?.status === 404) {
+        toast({
+          title: "Info",
+          description: "Category deletion is not supported by the backend.",
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.response?.data?.message || "Failed to delete category",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -257,7 +271,13 @@ export default function Categories() {
                   <CardTitle className="text-xl">{cat.name}</CardTitle>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => handleEdit(cat)} className="text-gray-700 hover:text-purple-600"><Edit size={16} /></Button>
+                  <Button variant="ghost" size="sm" onClick={() => {
+                    toast({
+                      title: "Info",
+                      description: "Category editing is not supported. Please create a new category instead.",
+                      variant: "default",
+                    });
+                  }} className="text-gray-400 cursor-not-allowed"><Edit size={16} /></Button>
                   <Button variant="ghost" size="sm" onClick={() => handleDelete(cat)} className="text-red-500 hover:text-red-700"><Trash2 size={16} /></Button>
                 </div>
               </CardHeader>
