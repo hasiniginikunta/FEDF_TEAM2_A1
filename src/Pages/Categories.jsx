@@ -48,15 +48,29 @@ export default function Categories() {
   const { categories, transactions, totalBudget, totalSpent, remaining, loading, createCategory, updateCategory, deleteCategory, reloadData } = useAppData();
   const { toast } = useToast();
 
-  // Force reload data when Categories page loads
+  // Check authentication and force reload data when Categories page loads
   React.useEffect(() => {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    
+    console.log('Categories - Auth check:');
+    console.log('Token exists:', !!token);
+    console.log('Token preview:', token ? token.substring(0, 20) + '...' : 'None');
+    console.log('User exists:', !!user);
+    
+    if (!token || !user) {
+      console.log('No auth found, redirecting to login');
+      window.location.href = '/login';
+      return;
+    }
+    
     reloadData();
   }, []);
 
   const { user } = useAuth();
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
-  const [formData, setFormData] = useState({ name: "", budget: "", color: "gradient-pink-purple" });
+  const [formData, setFormData] = useState({ name: "", type: "expense", budget: "", color: "gradient-pink-purple" });
 
   const gradients = [
     "gradient-pink-purple",
@@ -82,13 +96,30 @@ export default function Categories() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.budget) return;
-    const budgetValue = parseFloat(formData.budget);
+    
+    // Validate required fields
+    if (!formData.name.trim()) {
+      toast({
+        title: "Error",
+        description: "Category name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!formData.type || !['income', 'expense'].includes(formData.type)) {
+      toast({
+        title: "Error",
+        description: "Type must be income or expense",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       const categoryData = {
-        name: formData.name,
-        type: "expense" // Most categories are expense type
+        name: formData.name.trim(),
+        type: formData.type
       };
       
       console.log('Sending category data:', categoryData);
@@ -100,7 +131,7 @@ export default function Categories() {
         await createCategory(categoryData);
       }
 
-      setFormData({ name: "", budget: "", color: "gradient-pink-purple" });
+      setFormData({ name: "", type: "expense", budget: "", color: "gradient-pink-purple" });
       setEditingCategory(null);
       setShowForm(false);
       toast({
@@ -111,9 +142,19 @@ export default function Categories() {
       console.error('Failed to save category:', error);
       console.error('Error response:', error.response?.data);
       console.error('Error status:', error.response?.status);
+      
+      // Handle backend validation errors
+      let errorMessage = `Failed to ${editingCategory ? 'update' : 'create'} category`;
+      
+      if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        errorMessage = error.response.data.errors[0]?.msg || errorMessage;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
       toast({
         title: "Error",
-        description: error.response?.data?.message || `Failed to ${editingCategory ? 'update' : 'create'} category`,
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -121,7 +162,12 @@ export default function Categories() {
 
   const handleEdit = (cat) => {
     setEditingCategory(cat);
-    setFormData({ name: cat.name, budget: (cat.budget || 0).toString(), color: cat.color || "gradient-pink-purple" });
+    setFormData({ 
+      name: cat.name, 
+      type: cat.type || "expense",
+      budget: (cat.budget || 0).toString(), 
+      color: cat.color || "gradient-pink-purple" 
+    });
     setShowForm(true);
   };
 
@@ -244,12 +290,36 @@ export default function Categories() {
                   <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
                       <div>
-                        <Label>Name</Label>
-                        <Input className="bg-white text-gray-800" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
+                        <Label>Name *</Label>
+                        <Input 
+                          className="bg-white text-gray-800" 
+                          value={formData.name} 
+                          onChange={e => setFormData({ ...formData, name: e.target.value })} 
+                          placeholder="Enter category name"
+                          required 
+                        />
                       </div>
                       <div>
-                        <Label>Budget</Label>
-                        <Input className="bg-white text-gray-800" type="number" value={formData.budget} onChange={e => setFormData({ ...formData, budget: e.target.value })} required />
+                        <Label>Type *</Label>
+                        <select 
+                          className="w-full p-2 border rounded bg-white text-gray-800"
+                          value={formData.type}
+                          onChange={e => setFormData({ ...formData, type: e.target.value })}
+                          required
+                        >
+                          <option value="expense">Expense</option>
+                          <option value="income">Income</option>
+                        </select>
+                      </div>
+                      <div>
+                        <Label>Budget (Optional)</Label>
+                        <Input 
+                          className="bg-white text-gray-800" 
+                          type="number" 
+                          value={formData.budget} 
+                          onChange={e => setFormData({ ...formData, budget: e.target.value })} 
+                          placeholder="Enter budget amount"
+                        />
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {gradients.map(grad => (

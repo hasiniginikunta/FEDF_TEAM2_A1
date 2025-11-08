@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h1>HisabKitab API Test</h1>
+    <button onclick="testSignup()">Test Signup</button>
+    <button onclick="testLogin()">Test Login</button>
+    <button onclick="testCategories()">Test Categories</button>
+    <div id="output"></div>
+
+    <script>
+        const API_BASE = 'https://hisabkitab-backend-tjik.onrender.com/api';
+        let token = '';
+
+        function log(message) {
+            document.getElementById('output').innerHTML += '<p>' + message + '</p>';
+            console.log(message);
+        }
+
+        async function testSignup() {
+            log('Testing signup...');
+            try {
+                const response = await fetch(`${API_BASE}/auth/signup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: 'Test User',
+                        email: 'test@example.com',
+                        password: '123456'
+                    })
+                });
+                
+                const data = await response.json();
+                log(`Signup: ${response.status} - ${JSON.stringify(data)}`);
+                
+                if (data.token) {
+                    token = data.token;
+                    log(`Token saved: ${token.substring(0, 20)}...`);
+                }
+            } catch (error) {
+                log(`Signup error: ${error.message}`);
+            }
+        }
+
+        async function testLogin() {
+            log('Testing login...');
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'test@example.com',
+                        password: '123456'
+                    })
+                });
+                
+                const data = await response.json();
+                log(`Login: ${response.status} - ${JSON.stringify(data)}`);
+                
+                if (data.token) {
+                    token = data.token;
+                    log(`Token saved: ${token.substring(0, 20)}...`);
+                }
+            } catch (error) {
+                log(`Login error: ${error.message}`);
+            }
+        }
+
+        async function testCategories() {
+            if (!token) {
+                log('No token! Please login first.');
+                return;
+            }
+            
+            log('Testing create category...');
+            try {
+                const response = await fetch(`${API_BASE}/categories`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        name: 'Food',
+                        type: 'expense'
+                    })
+                });
+                
+                const data = await response.json();
+                log(`Create category: ${response.status} - ${JSON.stringify(data)}`);
+            } catch (error) {
+                log(`Category error: ${error.message}`);
+            }
+        }
+    </script>
+</body>
+</html>
