@@ -116,8 +116,18 @@ export default api;
 // 🏷️ CATEGORY API
 //
 export const categoryAPI = {
+  getAll: async () => {
+    const response = await api.get('/api/categories');
+    return response.data;
+  },
+
   getCategories: async () => {
     const response = await api.get('/api/categories');
+    return response.data;
+  },
+
+  create: async (categoryData) => {
+    const response = await api.post('/api/categories', categoryData);
     return response.data;
   },
 
@@ -126,8 +136,18 @@ export const categoryAPI = {
     return response.data;
   },
 
+  update: async (id, categoryData) => {
+    const response = await api.put(`/api/categories/${id}`, categoryData);
+    return response.data;
+  },
+
   updateCategory: async (id, categoryData) => {
     const response = await api.put(`/api/categories/${id}`, categoryData);
+    return response.data;
+  },
+
+  delete: async (id) => {
+    const response = await api.delete(`/api/categories/${id}`);
     return response.data;
   },
 
@@ -141,8 +161,18 @@ export const categoryAPI = {
 // 💰 TRANSACTION API
 //
 export const transactionAPI = {
+  getAll: async () => {
+    const response = await api.get('/api/transactions');
+    return response.data;
+  },
+
   getTransactions: async () => {
     const response = await api.get('/api/transactions');
+    return response.data;
+  },
+
+  create: async (transactionData) => {
+    const response = await api.post('/api/transactions', transactionData);
     return response.data;
   },
 
@@ -151,8 +181,18 @@ export const transactionAPI = {
     return response.data;
   },
 
+  update: async (id, transactionData) => {
+    const response = await api.put(`/api/transactions/${id}`, transactionData);
+    return response.data;
+  },
+
   updateTransaction: async (id, transactionData) => {
     const response = await api.put(`/api/transactions/${id}`, transactionData);
+    return response.data;
+  },
+
+  delete: async (id) => {
+    const response = await api.delete(`/api/transactions/${id}`);
     return response.data;
   },
 

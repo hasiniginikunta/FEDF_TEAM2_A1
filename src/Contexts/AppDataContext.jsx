@@ -26,11 +26,15 @@ export const AppDataProvider = ({ children }) => {
         transactionAPI.getAll()
       ]);
       
-      setCategories(categoriesData.categories || []);
-      setTransactions(transactionsData.transactions || []);
+      // Handle response structure - data might be directly in response or nested
+      const cats = Array.isArray(categoriesData) ? categoriesData : (categoriesData.categories || []);
+      const txs = Array.isArray(transactionsData) ? transactionsData : (transactionsData.transactions || []);
+      
+      setCategories(cats);
+      setTransactions(txs);
       
       // Calculate monthly budget from categories
-      const totalBudget = categoriesData.categories?.reduce((sum, cat) => sum + (cat.budget || 0), 0) || 0;
+      const totalBudget = cats.reduce((sum, cat) => sum + (cat.budget || 0), 0);
       setMonthlyBudget(totalBudget);
     } catch (err) {
       console.error('Failed to load data:', err);
@@ -45,8 +49,9 @@ export const AppDataProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await categoryAPI.create(categoryData);
-      setCategories(prev => [...prev, response.category]);
-      return response.category;
+      const newCategory = response.category || response;
+      setCategories(prev => [...prev, newCategory]);
+      return newCategory;
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create category');
       throw err;
@@ -59,8 +64,9 @@ export const AppDataProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await categoryAPI.update(id, categoryData);
-      setCategories(prev => prev.map(cat => cat.id === id ? response.category : cat));
-      return response.category;
+      const updatedCategory = response.category || response;
+      setCategories(prev => prev.map(cat => cat.id === id ? updatedCategory : cat));
+      return updatedCategory;
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update category');
       throw err;
@@ -87,8 +93,9 @@ export const AppDataProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await transactionAPI.create(transactionData);
-      setTransactions(prev => [...prev, response.transaction]);
-      return response.transaction;
+      const newTransaction = response.transaction || response;
+      setTransactions(prev => [...prev, newTransaction]);
+      return newTransaction;
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create transaction');
       throw err;
@@ -101,8 +108,9 @@ export const AppDataProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await transactionAPI.update(id, transactionData);
-      setTransactions(prev => prev.map(tx => tx.id === id ? response.transaction : tx));
-      return response.transaction;
+      const updatedTransaction = response.transaction || response;
+      setTransactions(prev => prev.map(tx => tx.id === id ? updatedTransaction : tx));
+      return updatedTransaction;
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update transaction');
       throw err;
