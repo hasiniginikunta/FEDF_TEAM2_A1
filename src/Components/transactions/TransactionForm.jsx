@@ -18,6 +18,11 @@ export default function TransactionForm({ transaction, categories, onSubmit, onC
     notes: transaction?.notes || ""
   });
 
+  // DEBUG: Track form state changes
+  useEffect(() => {
+    console.log('🔍 Form state updated:', formData);
+  }, [formData]);
+
   const [filteredCategories, setFilteredCategories] = useState([]);
 
   useEffect(() => {
@@ -35,6 +40,7 @@ export default function TransactionForm({ transaction, categories, onSubmit, onC
   }, [formData.type, categories, formData.category_id]);
 
   const handleChange = (field, value) => {
+    console.log(`🔍 Field ${field} changed to:`, value);
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
