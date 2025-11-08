@@ -89,6 +89,12 @@ const handleSubmit = (e) => {
     notes: formData.notes || ""
   };
   
+  // DEBUG: Validate category_id exists
+  console.log('🔍 category_id from form:', formData.category_id);
+  if (!formData.category_id) {
+    console.error('❌ category_id is empty in form data');
+  }
+  
   // DEBUG: Log final submission data
   console.log('✅ TransactionForm - Submitting data:', submissionData);
   

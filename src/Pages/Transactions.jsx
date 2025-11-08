@@ -59,6 +59,8 @@ export default function Transactions() {
     try {
       // DEBUG: Log incoming form data
       console.log('🔍 Raw form data received:', tx);
+      console.log('🔍 tx.category value:', tx.category);
+      console.log('🔍 tx keys:', Object.keys(tx));
       console.log('🔍 Available categories:', categories);
       
       // Handle OCR data format (from OCRScanner) vs regular transaction format
@@ -93,6 +95,7 @@ export default function Transactions() {
 
       // DEBUG: Validate category field
       console.log('🔍 Final transaction data:', transactionData);
+      console.log('🔍 transactionData.category:', transactionData.category);
       if (!transactionData.category) {
         console.error('❌ CATEGORY MISSING! Form data:', tx);
         throw new Error('Category is required - please select a category');
