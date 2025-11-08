@@ -86,18 +86,18 @@ export default function Categories() {
     const budgetValue = parseFloat(formData.budget);
 
     try {
+      const categoryData = {
+        name: formData.name,
+        type: "expense" // Most categories are expense type
+      };
+      
+      console.log('Sending category data:', categoryData);
+      console.log('JWT Token:', localStorage.getItem('token'));
+      
       if (editingCategory) {
-        await updateCategory(editingCategory.id, {
-          name: formData.name,
-          budget: budgetValue,
-          color: formData.color
-        });
+        await updateCategory(editingCategory.id, categoryData);
       } else {
-        await createCategory({
-          name: formData.name,
-          budget: budgetValue,
-          color: formData.color
-        });
+        await createCategory(categoryData);
       }
 
       setFormData({ name: "", budget: "", color: "gradient-pink-purple" });
@@ -109,6 +109,8 @@ export default function Categories() {
       });
     } catch (error) {
       console.error('Failed to save category:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
       toast({
         title: "Error",
         description: error.response?.data?.message || `Failed to ${editingCategory ? 'update' : 'create'} category`,
