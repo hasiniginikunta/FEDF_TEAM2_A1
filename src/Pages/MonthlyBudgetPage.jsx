@@ -3,24 +3,25 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "../Components/ui/card";
 import { Input } from "../Components/ui/input";
 import { Button } from "../Components/ui/button";
+import { useAppData } from "../Contexts/AppDataContext";
+import { useToast } from "../hooks/use-toast";
 import categoryData from "../Entities/Category.json";
 
 export default function MonthlyBudgetPage() {
   const navigate = useNavigate();
-  const storedUser = JSON.parse(localStorage.getItem("user")) || {};
+  const { createCategory, loading } = useAppData();
+  const { toast } = useToast();
 
-  const storedCategories =
-    JSON.parse(localStorage.getItem("hisabkitab_categories")) || 
-    categoryData.map(cat => ({
-      id: cat.id,
-      name: cat.name,
-      budget: 0,
-      color: cat.color,
-      type: cat.type
-    }));
+  const defaultCategories = categoryData.map(cat => ({
+    id: cat.id,
+    name: cat.name,
+    budget: 0,
+    color: cat.color,
+    type: cat.type || 'expense'
+  }));
 
-  const [budget, setBudget] = useState(storedUser.budget_limit || "");
-  const [categories, setCategories] = useState(storedCategories);
+  const [budget, setBudget] = useState("");
+  const [categories, setCategories] = useState(defaultCategories);
 
   // 🔹 Auto allocate evenly
   const autoAllocate = (budgetAmount) => {
@@ -45,42 +46,47 @@ export default function MonthlyBudgetPage() {
     );
   };
 
- // 🔹 Save in localStorage
-const handleSubmit = (e) => {
-  e.preventDefault();
-  const budgetAmount = parseFloat(budget);
+  // Save categories to database via API
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!budget || parseFloat(budget) <= 0) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid budget amount",
+        variant: "destructive",
+      });
+      return;
+    }
 
-  // Ensure categories have string IDs for consistency
-  const categoriesWithStringIds = categories.map(cat => ({
-    ...cat,
-    id: cat.id.toString()
-  }));
+    try {
+      // Create all categories with their budgets via API
+      for (const cat of categories) {
+        if (cat.budget > 0) {
+          await createCategory({
+            name: cat.name,
+            type: cat.type || 'expense',
+            budget: cat.budget,
+            color: cat.color
+          });
+        }
+      }
 
-  // Get existing appData if any
-  const existingData = JSON.parse(localStorage.getItem("appData")) || {};
-
-  // Save updated budget + categories to appData
-  localStorage.setItem(
-    "appData",
-    JSON.stringify({
-      ...existingData,
-      monthlyBudget: budgetAmount,
-      categories: categoriesWithStringIds,
-      transactions: existingData.transactions || [],
-    })
-  );
-
-  // Also save to hisabkitab_categories for AppDataContext
-  localStorage.setItem("hisabkitab_categories", JSON.stringify(categoriesWithStringIds));
-
-  // Also update user object if needed
-  localStorage.setItem(
-    "user",
-    JSON.stringify({ ...storedUser, budget_limit: budgetAmount })
-  );
-
-  navigate("/confirmation");
-};
+      toast({
+        title: "Success",
+        description: "Budget allocation saved successfully!",
+      });
+      
+      navigate("/confirmation");
+    } catch (error) {
+      console.error('Failed to save budget allocation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save budget allocation. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 relative">
@@ -131,9 +137,10 @@ const handleSubmit = (e) => {
 
             <Button
               type="submit"
+              disabled={loading}
               className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500 hover:shadow-lg transition-all duration-300"
             >
-              Confirm & Continue
+              {loading ? 'Saving...' : 'Confirm & Continue'}
             </Button>
           </form>
         </CardContent>

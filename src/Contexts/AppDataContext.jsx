@@ -23,14 +23,19 @@ export const AppDataProvider = ({ children }) => {
     }
   }, []);
 
-  // Clear data when user logs out
+  // Monitor token changes to clear data when switching users
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setTransactions([]);
-      setCategories([]);
-      setMonthlyBudget(0);
-    }
+    const handleStorageChange = () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        clearData();
+      } else {
+        loadAllData();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const loadAllData = async () => {
