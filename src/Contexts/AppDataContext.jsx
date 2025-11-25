@@ -119,18 +119,20 @@ export const AppDataProvider = ({ children }) => {
       return newCategory;
     } catch (err) {
       console.error('❌ Category creation failed:', err);
-      console.error('📋 Full error object:', err);
       console.error('📋 Error response data:', err.response?.data);
       console.error('📋 Error response status:', err.response?.status);
-      console.error('📋 Error response headers:', err.response?.headers);
-      console.error('📋 Error message:', err.message);
       
-      // Try to parse error response if it's HTML
-      if (typeof err.response?.data === 'string') {
-        console.error('📋 Raw HTML error response:', err.response.data);
+      // Handle "already exists" error
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to create category';
+      
+      if (errorMessage.toLowerCase().includes('already exists') || errorMessage.toLowerCase().includes('duplicate')) {
+        console.log(`✅ Category "${categoryData.name}" already exists, skipping...`);
+        // Don't throw error for existing categories, just log it
+        setError(null);
+        return { success: true, skipped: true, message: `Category "${categoryData.name}" already exists` };
       }
       
-      setError(err.response?.data?.message || err.message || 'Failed to create category');
+      setError(errorMessage);
       throw err;
     } finally {
       setLoading(false);

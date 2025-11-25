@@ -124,8 +124,8 @@ export default function Categories() {
     try {
       const categoryData = {
         name: formData.name.trim(),
-        type: formData.type
-        // Budget field removed - backend doesn't support it
+        type: formData.type,
+        budget: formData.budget ? parseFloat(formData.budget) : 0
       };
       
       // Validate before sending
@@ -149,7 +149,15 @@ export default function Categories() {
         return;
       } else {
         console.log('✅ Creating new category with data:', categoryData);
-        await createCategory(categoryData);
+        const result = await createCategory(categoryData);
+        
+        if (result?.skipped) {
+          toast({
+            title: "Info",
+            description: result.message || `Category "${categoryData.name}" already exists`,
+            variant: "default",
+          });
+        }
       }
 
       setFormData({ name: "", type: "expense", budget: "", color: "gradient-pink-purple" });
