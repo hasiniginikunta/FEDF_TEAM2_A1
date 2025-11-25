@@ -48,22 +48,17 @@ export default function Categories() {
   const { categories, transactions, totalBudget, totalSpent, remaining, loading, createCategory, updateCategory, deleteCategory, reloadData, enrichedCategories } = useAppData();
   const { toast } = useToast();
 
-  // Check authentication and force reload data when Categories page loads
+  // Force reload data when page loads to ensure fresh data
   React.useEffect(() => {
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
     
-    console.log('Categories - Auth check:');
-    console.log('Token exists:', !!token);
-    console.log('Token preview:', token ? token.substring(0, 20) + '...' : 'None');
-    console.log('User exists:', !!user);
-    
     if (!token || !user) {
-      console.log('No auth found, redirecting to login');
       window.location.href = '/login';
       return;
     }
     
+    // Always reload data to ensure it's fresh for current user
     reloadData();
   }, []);
 

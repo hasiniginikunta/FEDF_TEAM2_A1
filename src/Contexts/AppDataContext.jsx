@@ -10,33 +10,48 @@ export const AppDataProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Load data on mount if user is authenticated
+  // Track current user and clear data when user changes
+  const [currentUserId, setCurrentUserId] = useState(null);
+  
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token) {
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    const userId = user?._id || user?.id;
+    
+    if (token && userId) {
+      // If user changed, clear old data first
+      if (currentUserId && currentUserId !== userId) {
+        console.log('User changed, clearing old data');
+        clearData();
+      }
+      setCurrentUserId(userId);
       loadAllData();
     } else {
-      // Clear data if no token
-      setTransactions([]);
-      setCategories([]);
-      setMonthlyBudget(0);
+      // No auth, clear everything
+      setCurrentUserId(null);
+      clearData();
     }
-  }, []);
+  }, [currentUserId]);
 
-  // Monitor token changes to clear data when switching users
+  // Monitor localStorage changes for user switching
   useEffect(() => {
     const handleStorageChange = () => {
       const token = localStorage.getItem('token');
-      if (!token) {
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      const userId = user?._id || user?.id;
+      
+      if (!token || !userId) {
+        setCurrentUserId(null);
         clearData();
-      } else {
-        loadAllData();
+      } else if (userId !== currentUserId) {
+        console.log('Storage change detected, user switched');
+        setCurrentUserId(userId);
       }
     };
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+  }, [currentUserId]);
 
   const loadAllData = async () => {
     try {

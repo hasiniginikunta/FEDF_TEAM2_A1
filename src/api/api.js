@@ -15,13 +15,25 @@ const api = axios.create({
 // Automatically add token to every request
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
+  
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+    console.log(`🔐 API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    console.log(`👤 User: ${user?.email || 'Unknown'}`);
+    console.log(`🎫 Token: ${token.substring(0, 20)}...`);
+  }
   return config;
 });
 
 // Handle 401 unauthorized responses
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log(`✅ API Response: ${response.config.method?.toUpperCase()} ${response.config.url}`);
+    console.log(`📊 Data count:`, Array.isArray(response.data?.categories) ? response.data.categories.length : 
+                                Array.isArray(response.data?.transactions) ? response.data.transactions.length : 'N/A');
+    return response;
+  },
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');

@@ -29,6 +29,11 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
+      
+      // Clear any existing data first
+      localStorage.clear();
+      setUser(null);
+      
       const response = await authAPI.login({ email, password });
       
       localStorage.setItem('token', response.token);
