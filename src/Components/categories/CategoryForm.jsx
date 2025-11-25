@@ -22,7 +22,8 @@ export default function CategoryForm({ category, onSubmit, onCancel }) {
     name: category?.name || "",
     color: category?.color || "#6366f1",
     icon: category?.icon || "tag",
-    type: category?.type || "expense"
+    type: category?.type || "expense",
+    budget: category?.budget || 0
   });
 
   const handleSubmit = (e) => {
@@ -75,6 +76,20 @@ export default function CategoryForm({ category, onSubmit, onCancel }) {
                 </SelectContent>
               </Select>
             </div>
+
+            {formData.type === 'expense' && (
+              <div>
+                <Label>Budget (₹)</Label>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  min="0"
+                  step="0.01"
+                  value={formData.budget}
+                  onChange={(e) => handleChange('budget', parseFloat(e.target.value) || 0)}
+                />
+              </div>
+            )}
 
             <div>
               <Label>Color</Label>

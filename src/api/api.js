@@ -129,7 +129,14 @@ export const categoryAPI = {
   },
 
   create: async (categoryData) => {
-    const response = await api.post('/categories', categoryData);
+    const payload = {
+      name: categoryData.name,
+      type: categoryData.type || 'expense',
+      budget: categoryData.budget || 0,
+      color: categoryData.color,
+      icon: categoryData.icon
+    };
+    const response = await api.post('/categories', payload);
     return response.data;
   },
 
@@ -139,7 +146,14 @@ export const categoryAPI = {
   },
 
   update: async (id, categoryData) => {
-    const response = await api.put(`/categories/${id}`, categoryData);
+    const payload = {
+      name: categoryData.name,
+      type: categoryData.type || 'expense',
+      budget: categoryData.budget || 0,
+      color: categoryData.color,
+      icon: categoryData.icon
+    };
+    const response = await api.put(`/categories/${id}`, payload);
     return response.data;
   },
 

@@ -45,7 +45,7 @@ export const getCategoryIcon = (cat) => {
 };
 
 export default function Categories() {
-  const { categories, transactions, totalBudget, totalSpent, remaining, loading, createCategory, updateCategory, deleteCategory, reloadData } = useAppData();
+  const { categories, transactions, totalBudget, totalSpent, remaining, loading, createCategory, updateCategory, deleteCategory, reloadData, enrichedCategories } = useAppData();
   const { toast } = useToast();
 
   // Check authentication and force reload data when Categories page loads
@@ -78,19 +78,8 @@ export default function Categories() {
     "gradient-pink-blue",
   ];
 
-  const enrichedCategories = useMemo(() => {
-    return categories.map(cat => {
-      const categoryTransactions = transactions.filter(tx => 
-        String(tx.category_id) === String(cat.id) && tx.type === 'expense'
-      );
-      
-      const spent = categoryTransactions.reduce((sum, tx) => sum + (tx.amount || 0), 0);
-      const percentUsed = cat.budget > 0 ? Math.min((spent / cat.budget) * 100, 100) : 0;
-      const isOverBudget = spent > (cat.budget || 0);
-      
-      return { ...cat, spent, percentUsed, isOverBudget };
-    });
-  }, [categories, transactions]);
+  // Use enrichedCategories from context instead of recalculating
+  const displayCategories = enrichedCategories.length > 0 ? enrichedCategories : categories;
 
 
 
@@ -259,7 +248,7 @@ export default function Categories() {
               </div>
             ))
           ) : (
-            enrichedCategories.map((cat, index) => (
+            displayCategories.map((cat, index) => (
             <motion.div key={cat.id} initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1, type: "spring" }} whileHover={{ scale: 1.05 }}
               className={`card-base ${cat.isOverBudget ? "gradient-overbudget" : cat.color}`}
             >
@@ -286,16 +275,16 @@ export default function Categories() {
                   <motion.div className="progress-fill" initial={{ width: 0 }} animate={{ width: `${cat.percentUsed}%` }} transition={{ duration: 0.8 }} />
                 </div>
                 <div className="flex justify-between text-sm mt-2">
-                  <span>{cat.percentUsed.toFixed(1)}% used</span>
+                  <span>{cat.percentUsed?.toFixed(1) || 0}% used</span>
                   <Badge className={cat.isOverBudget ? "badge-overbudget" : "badge-normal"}>
-                    {cat.isOverBudget ? "Over Budget!" : `₹${((cat.budget || 0) - (cat.spent || 0)).toLocaleString()} left`}
+                    {cat.isOverBudget ? "Over Budget!" : `₹${(cat.remaining || 0).toLocaleString()} left`}
                   </Badge>
                 </div>
                 <div className="flex justify-between mt-2 text-sm">
-                  <span>Budget: {cat.budget > 0 ? `₹${cat.budget.toLocaleString()}` : 'Not allocated'}</span>
+                  <span>Budget: {(cat.budget || 0) > 0 ? `₹${(cat.budget || 0).toLocaleString()}` : 'Not set'}</span>
                   <span>Spent: ₹{(cat.spent || 0).toLocaleString()}</span>
                 </div>
-                {(cat.budget === 0 || !cat.budget) && (
+                {(!cat.budget || cat.budget === 0) && (
                   <div className="text-xs text-gray-500 mt-1">
                     Click edit to set budget allocation
                   </div>

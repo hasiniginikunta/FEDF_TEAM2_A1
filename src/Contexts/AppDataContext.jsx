@@ -172,13 +172,26 @@ export const AppDataProvider = ({ children }) => {
   // Computed values
   const enrichedCategories = useMemo(() => {
     return categories.map(cat => {
-      const spent = transactions
-        .filter(tx => tx.category_id === cat.id && tx.type === 'expense')
-        .reduce((sum, tx) => sum + tx.amount, 0);
+      // Calculate spent amount for this category
+      const categoryTransactions = transactions.filter(tx => {
+        // Handle both populated category object and category_id
+        const txCategoryId = tx.category?._id || tx.category?.id || tx.category_id || tx.category;
+        const catId = cat._id || cat.id;
+        return String(txCategoryId) === String(catId) && tx.type === 'expense';
+      });
       
-      const percentUsed = Math.min((spent / (cat.budget || 1)) * 100, 100);
+      const spent = categoryTransactions.reduce((sum, tx) => sum + (tx.amount || 0), 0);
+      const budget = cat.budget || 0;
+      const percentUsed = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0;
+      const isOverBudget = spent > budget && budget > 0;
       
-      return { ...cat, spent, percentUsed };
+      return { 
+        ...cat, 
+        spent, 
+        percentUsed, 
+        isOverBudget,
+        remaining: Math.max(budget - spent, 0)
+      };
     });
   }, [transactions, categories]);
 

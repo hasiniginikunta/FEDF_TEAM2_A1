@@ -14,7 +14,17 @@ import { format } from "date-fns";
 
 export default function TransactionList({ transactions, categories, onEdit, onDelete, isLoading }) {
   const getCategoryById = (categoryId) => {
-    return categories.find(cat => cat.id === categoryId);
+    return categories.find(cat => cat.id === categoryId || cat._id === categoryId);
+  };
+
+  const getCategoryName = (transaction) => {
+    // Handle populated category object from backend
+    if (transaction.category && typeof transaction.category === 'object') {
+      return transaction.category.name;
+    }
+    // Handle category_id reference
+    const category = getCategoryById(transaction.category_id || transaction.category);
+    return category?.name || 'No Category';
   };
 
   if (isLoading) {
@@ -111,18 +121,16 @@ export default function TransactionList({ transactions, categories, onEdit, onDe
                     </div>
                     
                     <div className="flex items-center gap-4">
-                      {category && (
-                        <Badge 
-                          variant="outline"
-                          style={{ 
-                            backgroundColor: `${category.color}10`,
-                            borderColor: category.color,
-                            color: category.color
-                          }}
-                        >
-                          {category.name}
-                        </Badge>
-                      )}
+                      <Badge 
+                        variant="outline"
+                        style={{ 
+                          backgroundColor: category?.color ? `${category.color}10` : '#f3f4f6',
+                          borderColor: category?.color || '#d1d5db',
+                          color: category?.color || '#6b7280'
+                        }}
+                      >
+                        {getCategoryName(transaction)}
+                      </Badge>
                       
                       <span className={`font-bold text-lg ${
                         transaction.type === 'income' ? 
@@ -130,7 +138,7 @@ export default function TransactionList({ transactions, categories, onEdit, onDe
                         'text-red-600'
                       }`}>
                         {transaction.type === 'income' ? '+' : '-'}
-                        ${transaction.amount.toFixed(2)}
+                        ₹{transaction.amount.toLocaleString()}
                       </span>
                       
                       <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
