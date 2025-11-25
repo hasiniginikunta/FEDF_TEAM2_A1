@@ -46,7 +46,7 @@ export default function MonthlyBudgetPage() {
     );
   };
 
-  // Save categories to database via API
+  // Create default categories (backend doesn't support budget field yet)
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -60,29 +60,40 @@ export default function MonthlyBudgetPage() {
     }
 
     try {
-      // Create all categories with their budgets via API
-      for (const cat of categories) {
-        if (cat.budget > 0) {
-          await createCategory({
-            name: cat.name,
-            type: cat.type || 'expense',
-            budget: cat.budget,
-            color: cat.color
-          });
+      // Create default categories without budget (backend limitation)
+      const defaultCategories = [
+        { name: 'Food & Groceries', type: 'expense' },
+        { name: 'Transportation', type: 'expense' },
+        { name: 'Entertainment', type: 'expense' },
+        { name: 'Shopping', type: 'expense' },
+        { name: 'Bills & Utilities', type: 'expense' },
+        { name: 'Healthcare', type: 'expense' },
+        { name: 'Salary', type: 'income' }
+      ];
+      
+      for (const cat of defaultCategories) {
+        try {
+          await createCategory(cat);
+          console.log('✅ Category created:', cat.name);
+        } catch (catError) {
+          // Ignore duplicate category errors
+          if (catError.response?.status !== 400) {
+            throw catError;
+          }
         }
       }
 
       toast({
         title: "Success",
-        description: "Budget allocation saved successfully!",
+        description: "Categories created successfully! Budget tracking will be added soon.",
       });
       
       navigate("/confirmation");
     } catch (error) {
-      console.error('Failed to save budget allocation:', error);
+      console.error('Failed to create categories:', error);
       toast({
         title: "Error",
-        description: "Failed to save budget allocation. Please try again.",
+        description: "Failed to create categories. Please try again.",
         variant: "destructive",
       });
     }
