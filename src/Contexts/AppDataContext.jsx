@@ -95,12 +95,32 @@ export const AppDataProvider = ({ children }) => {
   const createCategory = async (categoryData) => {
     try {
       setLoading(true);
+      
+      // DEBUG: Log what we're sending to API
+      console.log('📤 AppDataContext - Creating category with data:', categoryData);
+      console.log('🔍 Required fields check:');
+      console.log('  - name:', categoryData.name, '(required)');
+      console.log('  - type:', categoryData.type, '(required)');
+      console.log('  - budget:', categoryData.budget, '(optional)');
+      
+      // Validate required fields
+      if (!categoryData.name?.trim()) {
+        throw new Error('Category name is required');
+      }
+      if (!categoryData.type || !['income', 'expense'].includes(categoryData.type)) {
+        throw new Error('Type must be income or expense');
+      }
+      
       const response = await categoryAPI.create(categoryData);
+      console.log('✅ Category API response:', response);
+      
       const newCategory = response.category || response;
       setCategories(prev => [...prev, newCategory]);
       return newCategory;
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create category');
+      console.error('❌ Category creation failed:', err);
+      console.error('Error response:', err.response?.data);
+      setError(err.response?.data?.message || err.message || 'Failed to create category');
       throw err;
     } finally {
       setLoading(false);

@@ -94,8 +94,15 @@ export default function Categories() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // DEBUG: Log form data before validation
+    console.log('🔍 Form data:', formData);
+    console.log('🔍 Category name:', formData.name);
+    console.log('🔍 Category type:', formData.type);
+    console.log('🔍 Category budget:', formData.budget);
+    
     // Validate required fields
-    if (!formData.name.trim()) {
+    if (!formData.name?.trim()) {
+      console.error('❌ Missing category name!');
       toast({
         title: "Error",
         description: "Category name is required",
@@ -105,6 +112,7 @@ export default function Categories() {
     }
     
     if (!formData.type || !['income', 'expense'].includes(formData.type)) {
+      console.error('❌ Missing or invalid category type!');
       toast({
         title: "Error",
         description: "Type must be income or expense",
@@ -120,7 +128,15 @@ export default function Categories() {
         budget: formData.budget ? parseFloat(formData.budget) : 0
       };
       
-      console.log('Sending category data:', categoryData);
+      // Validate before sending
+      if (!categoryData.name) {
+        throw new Error('Category name is required');
+      }
+      if (!['income', 'expense'].includes(categoryData.type)) {
+        throw new Error('Type must be income or expense');
+      }
+      
+      console.log('📤 Sending category data:', categoryData);
       console.log('JWT Token:', localStorage.getItem('token'));
       
       if (editingCategory && (editingCategory.id || editingCategory._id)) {
@@ -132,8 +148,7 @@ export default function Categories() {
         });
         return;
       } else {
-        console.log('Creating new category');
-        console.log('Create data:', categoryData);
+        console.log('✅ Creating new category with data:', categoryData);
         await createCategory(categoryData);
       }
 
