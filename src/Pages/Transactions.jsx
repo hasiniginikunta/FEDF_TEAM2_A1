@@ -100,33 +100,9 @@ export default function Transactions() {
         };
       }
       
-      console.log('🔍 isOCRData:', isOCRData, 'tx.category type:', typeof tx.category);
-
-      // DEBUG: Validate category field
-      console.log('🔍 Final transaction data:', transactionData);
-      console.log('🔍 transactionData.category:', transactionData.category);
-      console.log('🔍 transactionData.type:', transactionData.type);
-      
-      // Validate category exists in our categories list
-      const selectedCategory = categories.find(c => 
-        String(c._id) === String(transactionData.category) || 
-        String(c.id) === String(transactionData.category)
-      );
-      console.log('🔍 Selected category object:', selectedCategory);
-      
       if (!transactionData.category) {
-        console.error('❌ CATEGORY MISSING! Form data:', tx);
         throw new Error('Category is required - please select a category');
       }
-      
-      if (!selectedCategory) {
-        console.error('❌ CATEGORY NOT FOUND in categories list!');
-        console.error('Looking for category ID:', transactionData.category);
-        console.error('Available categories:', categories.map(c => ({ id: c._id || c.id, name: c.name })));
-      }
-      
-      console.log('✅ Sending transaction data:', transactionData);
-      console.log('JWT Token:', localStorage.getItem('token'));
 
       if (editingTx) {
         await updateTransaction(editingTx.id, transactionData);
@@ -221,12 +197,7 @@ export default function Transactions() {
             categoryName = category?.name || "Uncategorized";
           }
           
-          console.log('Transaction category mapping:', {
-            txId: tx._id || tx.id,
-            categoryId: tx.category_id || tx.category,
-            foundCategory: category?.name,
-            allCategories: categories.map(c => ({ id: c._id || c.id, name: c.name }))
-          });
+
 
           const overspent = category && category.budget
             ? (() => {
