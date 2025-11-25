@@ -141,16 +141,11 @@ export const categoryAPI = {
   },
 
   create: async (categoryData) => {
-    // Send minimal payload that backend expects
     const payload = {
       name: categoryData.name,
-      type: categoryData.type || 'expense'
+      type: categoryData.type || 'expense',
+      budget: categoryData.budget || 0
     };
-    
-    // Only add budget if it exists and is > 0
-    if (categoryData.budget && categoryData.budget > 0) {
-      payload.budget = categoryData.budget;
-    }
     
     console.log('API: Sending category payload:', payload);
     const response = await api.post('/categories', payload);
@@ -165,12 +160,9 @@ export const categoryAPI = {
   update: async (id, categoryData) => {
     const payload = {
       name: categoryData.name,
-      type: categoryData.type || 'expense'
+      type: categoryData.type || 'expense',
+      budget: categoryData.budget || 0
     };
-    
-    if (categoryData.budget && categoryData.budget > 0) {
-      payload.budget = categoryData.budget;
-    }
     
     const response = await api.put(`/categories/${id}`, payload);
     return response.data;

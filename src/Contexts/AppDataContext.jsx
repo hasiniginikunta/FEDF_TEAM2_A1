@@ -62,15 +62,15 @@ export const AppDataProvider = ({ children }) => {
       ]);
       
       // Handle response structure - data might be directly in response or nested
-      const cats = Array.isArray(categoriesData) ? categoriesData : (categoriesData.categories || []);
+      let cats = Array.isArray(categoriesData) ? categoriesData : (categoriesData.categories || []);
       const txs = Array.isArray(transactionsData) ? transactionsData : (transactionsData.transactions || []);
+      
+      // Calculate monthly budget from API categories
+      const totalBudget = cats.reduce((sum, cat) => sum + (cat.budget || 0), 0);
+      setMonthlyBudget(totalBudget);
       
       setCategories(cats);
       setTransactions(txs);
-      
-      // Calculate monthly budget from categories
-      const totalBudget = cats.reduce((sum, cat) => sum + (cat.budget || 0), 0);
-      setMonthlyBudget(totalBudget);
     } catch (err) {
       console.error('Failed to load data:', err);
       setError(err.response?.data?.message || 'Failed to load data');
