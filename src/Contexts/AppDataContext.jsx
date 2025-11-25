@@ -119,7 +119,17 @@ export const AppDataProvider = ({ children }) => {
       return newCategory;
     } catch (err) {
       console.error('❌ Category creation failed:', err);
-      console.error('Error response:', err.response?.data);
+      console.error('📋 Full error object:', err);
+      console.error('📋 Error response data:', err.response?.data);
+      console.error('📋 Error response status:', err.response?.status);
+      console.error('📋 Error response headers:', err.response?.headers);
+      console.error('📋 Error message:', err.message);
+      
+      // Try to parse error response if it's HTML
+      if (typeof err.response?.data === 'string') {
+        console.error('📋 Raw HTML error response:', err.response.data);
+      }
+      
       setError(err.response?.data?.message || err.message || 'Failed to create category');
       throw err;
     } finally {
