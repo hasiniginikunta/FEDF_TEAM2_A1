@@ -60,30 +60,49 @@ export default function MonthlyBudgetPage() {
     }
 
     try {
+      console.log('💰 Starting budget allocation process...');
+      console.log('Total budget:', budget);
+      console.log('Categories to create:', categories);
+      
+      let createdCount = 0;
       
       // Create categories with budget allocations
       for (const cat of categories) {
         if (cat.budget > 0) {
+          const categoryData = {
+            name: cat.name,
+            type: cat.type || 'expense',
+            budget: cat.budget
+          };
+          
+          console.log(`🏷️ Creating category: ${cat.name} with budget: ₹${cat.budget}`);
+          
           try {
-            await createCategory({
-              name: cat.name,
-              type: cat.type || 'expense',
-              budget: cat.budget
-            });
-            console.log('✅ Category created:', cat.name);
+            const result = await createCategory(categoryData);
+            console.log('✅ Category created successfully:', result);
+            createdCount++;
           } catch (catError) {
-            // Ignore duplicate category errors
-            if (catError.response?.status !== 400) {
+            console.error(`❌ Failed to create category ${cat.name}:`, catError.response?.data);
+            if (catError.response?.status === 400 && catError.response?.data?.message?.includes('already exists')) {
+              console.log(`⚠️ Category ${cat.name} already exists, continuing...`);
+              createdCount++;
+            } else {
               throw catError;
             }
           }
+        } else {
+          console.log(`⏭️ Skipping category ${cat.name} - no budget allocated`);
         }
       }
+      
+      console.log(`🎉 Budget allocation complete! Created/updated ${createdCount} categories`);
 
       toast({
         title: "Success",
-        description: "Budget allocation saved successfully!",
+        description: `Budget allocation saved! ${createdCount} categories created.`,
       });
+      
+      console.log('🚀 Navigating to confirmation page...');
       
       navigate("/confirmation");
     } catch (error) {

@@ -12,8 +12,17 @@ export default function ConfirmationPage() {
 
   // Load fresh data when page loads
   useEffect(() => {
+    console.log('🎉 ConfirmationPage - Loading data...');
     reloadData();
   }, []);
+  
+  // Debug data state
+  useEffect(() => {
+    console.log('🎉 ConfirmationPage - Data updated:');
+    console.log('Categories count:', categories.length);
+    console.log('Categories:', categories);
+    console.log('User:', user);
+  }, [categories, user]);
 
   const handleConfirm = () => {
     // Force reload data for new user
