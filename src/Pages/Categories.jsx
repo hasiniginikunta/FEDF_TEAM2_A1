@@ -53,14 +53,27 @@ export default function Categories() {
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
     
+    console.log('📋 Categories page - Auth check:');
+    console.log('Token exists:', !!token);
+    console.log('User exists:', !!user);
+    
     if (!token || !user) {
       window.location.href = '/login';
       return;
     }
     
-    // Always reload data to ensure it's fresh for current user
+    console.log('🔄 Categories page - Reloading data...');
     reloadData();
   }, []);
+  
+  // Debug categories state
+  React.useEffect(() => {
+    console.log('📋 Categories state updated:');
+    console.log('Categories count:', categories.length);
+    console.log('Categories data:', categories);
+    console.log('Total budget:', totalBudget);
+    console.log('Loading:', loading);
+  }, [categories, totalBudget, loading]);
 
   const { user } = useAuth();
   const [showForm, setShowForm] = useState(false);

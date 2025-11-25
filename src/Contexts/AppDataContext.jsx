@@ -56,23 +56,35 @@ export const AppDataProvider = ({ children }) => {
   const loadAllData = async () => {
     try {
       setLoading(true);
+      console.log('🔄 Loading all data...');
+      
       const [categoriesData, transactionsData] = await Promise.all([
         categoryAPI.getAll(),
         transactionAPI.getAll()
       ]);
       
+      console.log('📥 Raw categories response:', categoriesData);
+      console.log('📥 Raw transactions response:', transactionsData);
+      
       // Handle response structure - data might be directly in response or nested
       let cats = Array.isArray(categoriesData) ? categoriesData : (categoriesData.categories || []);
       const txs = Array.isArray(transactionsData) ? transactionsData : (transactionsData.transactions || []);
       
+      console.log('📊 Processed categories:', cats);
+      console.log('📊 Processed transactions:', txs);
+      
       // Calculate monthly budget from API categories
       const totalBudget = cats.reduce((sum, cat) => sum + (cat.budget || 0), 0);
-      setMonthlyBudget(totalBudget);
+      console.log('💰 Total budget calculated:', totalBudget);
       
+      setMonthlyBudget(totalBudget);
       setCategories(cats);
       setTransactions(txs);
+      
+      console.log('✅ Data loaded successfully');
     } catch (err) {
-      console.error('Failed to load data:', err);
+      console.error('❌ Failed to load data:', err);
+      console.error('Error details:', err.response?.data);
       setError(err.response?.data?.message || 'Failed to load data');
     } finally {
       setLoading(false);
