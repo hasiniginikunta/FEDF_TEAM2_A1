@@ -106,9 +106,23 @@ export default function Transactions() {
       console.log('🔍 Final transaction data:', transactionData);
       console.log('🔍 transactionData.category:', transactionData.category);
       console.log('🔍 transactionData.type:', transactionData.type);
+      
+      // Validate category exists in our categories list
+      const selectedCategory = categories.find(c => 
+        String(c._id) === String(transactionData.category) || 
+        String(c.id) === String(transactionData.category)
+      );
+      console.log('🔍 Selected category object:', selectedCategory);
+      
       if (!transactionData.category) {
         console.error('❌ CATEGORY MISSING! Form data:', tx);
         throw new Error('Category is required - please select a category');
+      }
+      
+      if (!selectedCategory) {
+        console.error('❌ CATEGORY NOT FOUND in categories list!');
+        console.error('Looking for category ID:', transactionData.category);
+        console.error('Available categories:', categories.map(c => ({ id: c._id || c.id, name: c.name })));
       }
       
       console.log('✅ Sending transaction data:', transactionData);
@@ -189,21 +203,47 @@ export default function Transactions() {
           ))
         ) : (
           transactions.map((tx) => {
-          const category = categories.find((c) => c.id === tx.category_id || c._id === tx.category_id);
-          const categoryName = category?.name || tx.category || "Uncategorized";
+          // Handle different category reference formats
+          let category = null;
+          let categoryName = "Uncategorized";
+          
+          if (tx.category && typeof tx.category === 'object') {
+            // Category is populated object
+            category = tx.category;
+            categoryName = tx.category.name;
+          } else {
+            // Category is ID reference
+            const categoryId = tx.category_id || tx.category;
+            category = categories.find((c) => 
+              String(c._id) === String(categoryId) || 
+              String(c.id) === String(categoryId)
+            );
+            categoryName = category?.name || "Uncategorized";
+          }
+          
+          console.log('Transaction category mapping:', {
+            txId: tx._id || tx.id,
+            categoryId: tx.category_id || tx.category,
+            foundCategory: category?.name,
+            allCategories: categories.map(c => ({ id: c._id || c.id, name: c.name }))
+          });
 
-          const overspent =
-            category && category.budget
-              ? tx.amount +
-                transactions
-                  .filter((t) => t.category_id === category.id && t.id !== tx.id)
-                  .reduce((sum, t) => sum + t.amount, 0) >
-                category.budget
-              : false;
+          const overspent = category && category.budget
+            ? (() => {
+                const categoryId = category._id || category.id;
+                const categoryTotal = transactions
+                  .filter((t) => {
+                    const tCategoryId = t.category_id || t.category;
+                    return String(tCategoryId) === String(categoryId) && t.type === 'expense';
+                  })
+                  .reduce((sum, t) => sum + (t.amount || 0), 0);
+                return categoryTotal > category.budget;
+              })()
+            : false;
 
           return (
             <Card
-              key={tx.id}
+              key={tx._id || tx.id}
               className={`bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-2xl shadow-lg border-2 ${overspent ? "border-red-500" : "border-transparent"}`}
             >
               <CardHeader className="flex justify-between items-center p-4 bg-gradient-to-r from-pink-100 via-purple-100 to-blue-100 dark:from-gray-700/50 dark:via-gray-600/50 dark:to-gray-700/50">
@@ -220,7 +260,7 @@ export default function Transactions() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleDelete(tx.id)}
+                    onClick={() => handleDelete(tx._id || tx.id)}
                     className="text-red-500 hover:text-red-700"
                   >
                     <Trash2 size={16} />
