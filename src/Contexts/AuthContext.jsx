@@ -46,11 +46,16 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
+      
+      // Clear any existing data from previous accounts
+      localStorage.clear();
+      setUser(null);
+      
       const response = await authAPI.signup(userData);
       
       localStorage.setItem('token', response.token);
       setUser(response.user);
-      navigate("/dashboard");
+      navigate("/personal-details");
     } catch (err) {
       setError(err.response?.data?.message || "Signup failed");
       throw err;
@@ -60,8 +65,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.clear();
     setUser(null);
     navigate("/login");
   };

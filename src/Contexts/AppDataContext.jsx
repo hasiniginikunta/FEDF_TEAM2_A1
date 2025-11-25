@@ -15,6 +15,21 @@ export const AppDataProvider = ({ children }) => {
     const token = localStorage.getItem('token');
     if (token) {
       loadAllData();
+    } else {
+      // Clear data if no token
+      setTransactions([]);
+      setCategories([]);
+      setMonthlyBudget(0);
+    }
+  }, []);
+
+  // Clear data when user logs out
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setTransactions([]);
+      setCategories([]);
+      setMonthlyBudget(0);
     }
   }, []);
 
@@ -213,6 +228,13 @@ export const AppDataProvider = ({ children }) => {
     loadAllData();
   };
 
+  const clearData = () => {
+    setTransactions([]);
+    setCategories([]);
+    setMonthlyBudget(0);
+    setError(null);
+  };
+
   const value = useMemo(() => ({
     transactions,
     categories,
@@ -230,6 +252,7 @@ export const AppDataProvider = ({ children }) => {
     updateTransaction,
     deleteTransaction,
     reloadData,
+    clearData,
     setCategories,
     setTransactions,
     setMonthlyBudget,
