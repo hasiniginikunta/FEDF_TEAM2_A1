@@ -124,8 +124,8 @@ export default function Categories() {
     try {
       const categoryData = {
         name: formData.name.trim(),
-        type: formData.type,
-        budget: formData.budget ? parseFloat(formData.budget) : 0
+        type: formData.type
+        // Budget field removed - backend doesn't support it
       };
       
       // Validate before sending

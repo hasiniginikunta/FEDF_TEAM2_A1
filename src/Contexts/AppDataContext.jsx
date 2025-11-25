@@ -101,7 +101,7 @@ export const AppDataProvider = ({ children }) => {
       console.log('🔍 Required fields check:');
       console.log('  - name:', categoryData.name, '(required)');
       console.log('  - type:', categoryData.type, '(required)');
-      console.log('  - budget:', categoryData.budget, '(optional)');
+      console.log('  - budget: REMOVED (backend does not support this field)');
       
       // Validate required fields
       if (!categoryData.name?.trim()) {
