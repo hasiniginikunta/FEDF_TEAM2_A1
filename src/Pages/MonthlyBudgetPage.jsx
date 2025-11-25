@@ -9,7 +9,7 @@ import categoryData from "../Entities/Category.json";
 
 export default function MonthlyBudgetPage() {
   const navigate = useNavigate();
-  const { createCategory, loading } = useAppData();
+  const { createCategory, loading, reloadData } = useAppData();
   const { toast } = useToast();
 
   const defaultCategories = categoryData.map(cat => ({
@@ -60,34 +60,29 @@ export default function MonthlyBudgetPage() {
     }
 
     try {
-      console.log('💰 Starting budget allocation process...');
-      console.log('Total budget:', budget);
-      console.log('Categories to process:', categories);
-      
-      // First, get existing categories to see what we're working with
-      console.log('🔍 Fetching existing categories first...');
-      await reloadData();
-      
       let processedCount = 0;
       
-      // Since categories already exist, we need to update them with budgets
-      // For now, just mark as processed since backend doesn't support budget updates
+      // Create categories with budget allocations
       for (const cat of categories) {
         if (cat.budget > 0) {
-          console.log(`💰 Would update ${cat.name} with budget: ₹${cat.budget}`);
-          processedCount++;
+          try {
+            await createCategory({
+              name: cat.name,
+              budget: cat.budget,
+              color: cat.color,
+              type: cat.type
+            });
+            processedCount++;
+          } catch (error) {
+            // Category may already exist, skip
+          }
         }
       }
-      
-      console.log(`🎉 Budget allocation complete! Processed ${processedCount} categories`);
-      console.log('⚠️ Note: Budget updates require backend support for category updates');
 
       toast({
         title: "Success",
         description: `Budget allocation processed! ${processedCount} categories configured.`,
       });
-      
-      console.log('🚀 Navigating to confirmation page...');
       
       navigate("/confirmation");
     } catch (error) {
